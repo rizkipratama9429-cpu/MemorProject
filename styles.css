@@ -525,7 +525,7 @@ a {
 
 .hero-content {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 480px;
   gap: 4rem;
   align-items: center;
   position: relative;
@@ -671,28 +671,35 @@ a {
   position: relative;
 }
 
-.photo-placeholder {
-  width: 280px;
-  height: 280px;
-  border: 2px dashed var(--line-bright);
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  color: var(--ink-light);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  transition: all 0.4s var(--ease-smooth);
-  background: var(--bg-card);
+.hero-gecko {
+  width: 480px;
+  height: auto;
+  object-fit: contain;
+  transition: all 0.5s var(--ease-smooth);
+  position: relative;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
+  animation: gecko-float 6s ease-in-out infinite;
 }
 
-.photo-placeholder:hover {
-  border-color: var(--accent);
-  border-style: solid;
-  box-shadow: var(--glow);
-  transform: scale(1.02);
+@keyframes gecko-float {
+  0%, 100% {
+    transform: translateY(0) scaleY(1) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-2px) scaleY(1.005) rotate(-0.3deg);
+  }
+  50% {
+    transform: translateY(-4px) scaleY(1.01) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-2px) scaleY(1.005) rotate(0.3deg);
+  }
+}
+
+.hero-gecko:hover {
+  transform: scale(1.03) translateY(-8px);
+  filter: drop-shadow(0 30px 60px rgba(0, 240, 255, 0.2)) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
+  animation: none;
 }
 
 .photo-placeholder:hover {
@@ -1644,6 +1651,11 @@ a {
   .hero-photo {
     display: flex;
     justify-content: center;
+  }
+
+  .hero-gecko {
+    width: 360px;
+    height: 450px;
   }
 }
 
