@@ -35,9 +35,24 @@
   <!-- Analytics (uncomment and add your domain) -->
   <!-- <script defer data-domain="vinnyrz.com" src="https://plausible.io/js/script.js"></script> -->
 
+  <script>
+    try {
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {}
+  </script>
+
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+  <!-- Full-bleed background layers -->
+  <div class="page-bg" aria-hidden="true">
+    <div class="page-bg-pan page-bg-pan-left"></div>
+    <div class="page-bg-pan page-bg-pan-right"></div>
+    <div class="page-bg-grid"></div>
+  </div>
 
   <!-- Scroll Progress -->
   <div class="scroll-progress" id="scrollProgress"></div>
@@ -122,30 +137,87 @@
   </nav>
 
   <!-- Hero -->
-  <header class="hero">
-    <div class="hero-grid-bg"></div>
-    <div class="hero-meta">
-      <span class="hero-status"><span class="status-dot"></span><span id="statusText">Available for freelance</span></span>
-      <span class="hero-location" id="locationText">Portland, OR</span>
+  <header class="hero" id="hero">
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+    <div class="hero-rules" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
     </div>
-    <div class="hero-content">
-      <div class="hero-text">
-        <h1 class="hero-title" id="heroTitle">
-          <span class="line" id="heroLine1">Modern personal profil</span>
-          <span class="line"><em id="heroLine3">Anti ai slop</em></span>
-        </h1>
-        <p class="hero-sub" id="heroSub">I'm Vinnyrz — a designer-developer hybrid who cares about the details most people never notice but everyone feels.</p>
+
+    <div class="hero-inner">
+      <div class="hero-meta">
+        <span class="hero-index">Portfolio / 2026</span>
+        <span class="hero-status"><span class="status-dot"></span><span id="statusText">Available for freelance</span></span>
+        <span class="hero-location" id="locationText">Portland, OR</span>
       </div>
-      <div class="hero-photo">
-        <img src="gecko-transparent.png" alt="Premium Gecko" class="hero-gecko" loading="lazy">
+
+      <h1 class="hero-title" id="heroTitle">
+        <span class="line" id="heroLine1">Modern personal profil</span>
+        <span class="line line-accent"><em id="heroLine3">Anti ai slop</em></span>
+      </h1>
+
+      <div class="hero-base">
+        <div class="hero-copy">
+          <p class="hero-sub" id="heroSub">I'm Vinnyrz — a designer-developer hybrid who cares about the details most people never notice but everyone feels.</p>
+          <div class="hero-actions">
+            <a href="#work" class="hero-action magnetic">
+              <span>Selected work</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 12h14M13 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="#about" class="hero-action-quiet">
+              <span>More about me</span>
+              <span class="quiet-arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+
+        <aside class="hero-board" aria-label="Selected work and experience">
+          <a href="#work" class="hero-feature">
+            <div class="hero-feature-visual" aria-hidden="true">
+              <span class="hf-grid"></span>
+              <span class="hf-ring"></span>
+              <span class="hf-mark">M</span>
+              <span class="hf-corner hf-corner-a"></span>
+              <span class="hf-corner hf-corner-b"></span>
+              <span class="hf-code">01 / FINTECH</span>
+            </div>
+            <div class="hero-feature-copy">
+              <span class="hero-feature-kicker">Featured — 2025</span>
+              <h2 class="hero-feature-title">Meridian</h2>
+              <p class="hero-feature-desc">Fintech platform for 2M+ users.</p>
+            </div>
+            <span class="hero-feature-arrow" aria-hidden="true">↗</span>
+          </a>
+
+          <dl class="hero-stats">
+            <div class="hero-stat">
+              <dt>Years</dt>
+              <dd><span class="stat-slash">/</span>08</dd>
+            </div>
+            <div class="hero-stat">
+              <dt>Shipped</dt>
+              <dd><span class="stat-slash">/</span>47</dd>
+            </div>
+            <div class="hero-stat">
+              <dt>Awards</dt>
+              <dd><span class="stat-slash">/</span>12</dd>
+            </div>
+          </dl>
+        </aside>
       </div>
     </div>
-    <div class="hero-scroll">
-      <span>Scroll</span>
-      <div class="scroll-line"></div>
+
+    <div class="hero-foot">
+      <a href="#about" class="hero-scroll">
+        <span>Scroll to explore</span>
+        <span class="scroll-line" aria-hidden="true"></span>
+      </a>
+      <span class="hero-foot-note">Design × Engineering</span>
     </div>
-    <div class="hero-corner hero-corner-tl"></div>
-    <div class="hero-corner hero-corner-br"></div>
+
+    <div class="hero-corner hero-corner-tl" aria-hidden="true"></div>
+    <div class="hero-corner hero-corner-br" aria-hidden="true"></div>
   </header>
 
   <!-- Marquee -->

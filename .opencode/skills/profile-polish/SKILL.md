@@ -1,6 +1,6 @@
 ---
-name: Profile Polish
-description: Polish and improve the Vinnyrz personal profile website. Use when the user wants to refine visuals, fix spacing, improve animations, or make the site look more premium. Covers hero section, gecko image, theme toggle, nav links, and overall visual quality.
+name: profile-polish
+description: Polish and improve the Vinnyrz personal profile website. Use when the user wants to refine visuals, fix spacing, improve animations, or make the site look more premium. Covers hero section, theme toggle, nav links, and overall visual quality.
 ---
 
 ## Project Overview
@@ -11,7 +11,6 @@ This is Vinnyrz's personal profile website — a futuristic dark-themed portfoli
 - `index.html` — Main page structure
 - `styles.css` — All styles, themes, animations
 - `script.js` — All interactions (cursor, scroll, theme, edit panel)
-- `gecko-transparent.png` — Hero gecko image (transparent background)
 
 **Key Features:**
 - Dark/Light theme toggle (localStorage)
@@ -40,7 +39,6 @@ This is Vinnyrz's personal profile website — a futuristic dark-themed portfoli
 ### Animation Tuning
 - Hero blur-out triggers at About section approach
 - Nav links: slide-in-left on load, jello-horizontal on hover
-- Gecko: subtle float animation (6s loop)
 - Background: bg-pan-left 8s ease-in-out infinite alternate
 
 ### Making It More Premium
@@ -60,7 +58,6 @@ This is Vinnyrz's personal profile website — a futuristic dark-themed portfoli
 ## Guidelines
 
 1. **Always test responsive** — check mobile breakpoints at 768px and 1024px
-2. **Keep the gecko prominent** — it's the visual anchor of the hero
-3. **Preserve the edit panel** — don't break localStorage functionality
-4. **Theme toggle must work** — test both dark and light modes
-5. **Commit and push** — after changes, commit with descriptive message and push to GitHub
+2. **Preserve the edit panel** — don't break localStorage functionality
+3. **Theme toggle must work** — test both dark and light modes
+4. **Commit and push** — after changes, commit with descriptive message and push to GitHub

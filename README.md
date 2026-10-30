@@ -51,15 +51,6 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 2. Copy your Measurement ID (G-XXXXXXXXXX)
 3. Add the GA script before `</head>` in `index.html`
 
-## Replacing the Photo
-
-1. Add your photo to the project folder (e.g., `photo.jpg`)
-2. In `index.html`, find `.photo-placeholder`
-3. Replace the entire div with:
-```html
-<img src="photo.jpg" alt="Vinnyrz" style="width: 280px; height: 280px; object-fit: cover; border-radius: 16px;">
-```
-
 ## Replacing Project Thumbnails
 
 1. Add project screenshots to the project folder

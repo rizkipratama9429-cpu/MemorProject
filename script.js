@@ -35,6 +35,8 @@
   let content = loadContent();
 
   // ---------- Apply content to DOM ----------
+  let navInitialized = false;
+
   function applyContent() {
     document.getElementById('navLogo').textContent = content.logo;
     document.getElementById('heroLine1').textContent = content.hero1;
@@ -54,6 +56,12 @@
       const href = sectionIds[i] ? `#${sectionIds[i]}` : '#';
       return `<a href="${href}" class="nav-link">${link}</a>`;
     }).join('');
+
+    // Only let the links slide in on first paint; edits shouldn't replay it.
+    if (navInitialized) {
+      navLinks.querySelectorAll('.nav-link').forEach(link => link.classList.add('entered'));
+    }
+    navInitialized = true;
 
     // Marquee
     const marqueeItems = content.marquee.split(',').map(m => m.trim()).filter(m => m);
@@ -78,6 +86,8 @@
     document.getElementById('editLocation').value = content.location;
     document.getElementById('editEmail').value = content.email;
   }
+
+  applyContent();
 
   // ---------- Theme Toggle ----------
   const themeToggle = document.getElementById('themeToggle');
@@ -177,19 +187,23 @@
   }
   updateCursor();
 
-  // Hover effects for interactive elements
-  const hoverElements = 'a, button, .skill-card, .work-item, .writing-card, .testimonial-card, .fact, input, textarea';
-  document.querySelectorAll(hoverElements).forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      cursorRing.classList.add('hover');
-      cursorDot.style.width = '12px';
-      cursorDot.style.height = '12px';
-    });
-    el.addEventListener('mouseleave', () => {
-      cursorRing.classList.remove('hover');
-      cursorDot.style.width = '8px';
-      cursorDot.style.height = '8px';
-    });
+  // Hover effects for interactive elements (delegated: nav links get rebuilt)
+  const hoverSelector = 'a, button, .skill-card, .work-item, .writing-card, .testimonial-card, .fact, input, textarea';
+
+  document.addEventListener('mouseover', (e) => {
+    const el = e.target.closest(hoverSelector);
+    if (!el || el.contains(e.relatedTarget)) return;
+    cursorRing.classList.add('hover');
+    cursorDot.style.width = '12px';
+    cursorDot.style.height = '12px';
+  });
+
+  document.addEventListener('mouseout', (e) => {
+    const el = e.target.closest(hoverSelector);
+    if (!el || el.contains(e.relatedTarget)) return;
+    cursorRing.classList.remove('hover');
+    cursorDot.style.width = '8px';
+    cursorDot.style.height = '8px';
   });
 
   // ---------- Magnetic Buttons ----------
@@ -226,6 +240,8 @@
   window.addEventListener('scroll', () => {
     const currentScroll = window.pageYOffset;
 
+    document.body.classList.toggle('page-scrolled', currentScroll > 160);
+
     // Only show nav when at the very top
     if (currentScroll <= 100) {
       nav.classList.remove('hidden');
@@ -239,6 +255,8 @@
 
     lastScroll = currentScroll;
   }, { passive: true });
+
+  document.body.classList.toggle('page-scrolled', window.pageYOffset > 160);
 
   // ---------- Scroll Reveal ----------
   const revealElements = document.querySelectorAll(
@@ -262,33 +280,47 @@
   revealElements.forEach(el => revealObserver.observe(el));
 
   // ---------- Smooth scroll for nav links + Jello hover ----------
-  document.querySelectorAll('.nav-link').forEach(anchor => {
-    // Remove slide-in animation after it plays once
-    anchor.addEventListener('animationend', function() {
-      this.style.animation = 'none';
-    });
+  // Delegated: applyContent() rebuilds the links whenever the edit panel changes.
+  const navLinksEl = document.getElementById('navLinks');
 
-    // Jello animation on hover
-    anchor.addEventListener('mouseenter', function() {
-      this.classList.remove('jello');
-      void this.offsetWidth; // Force reflow
-      this.classList.add('jello');
-    });
+  navLinksEl.addEventListener('animationend', function(e) {
+    const link = e.target.closest('.nav-link');
+    if (!link) return;
 
-    // Smooth scroll on click
-    anchor.addEventListener('click', function(e) {
-      const targetId = this.getAttribute('href');
-      if (targetId === '#') return;
+    if (e.animationName === 'slide-in-left') {
+      link.classList.add('entered');
+    }
 
-      e.preventDefault();
-      const target = document.querySelector(targetId);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
+    if (e.animationName === 'jello-horizontal') {
+      link.classList.remove('jello');
+    }
   });
 
-  // ---------- Parallax + Blur-out on hero ----------
+  navLinksEl.addEventListener('mouseover', function(e) {
+    const link = e.target.closest('.nav-link');
+    if (!link || link.contains(e.relatedTarget)) return;
+
+    link.classList.add('entered');
+    link.classList.remove('jello');
+    void link.offsetWidth; // Force reflow
+    link.classList.add('jello');
+  });
+
+  navLinksEl.addEventListener('click', function(e) {
+    const link = e.target.closest('.nav-link');
+    if (!link) return;
+
+    const targetId = link.getAttribute('href');
+    if (!targetId || targetId === '#') return;
+
+    const target = document.querySelector(targetId);
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // ---------- Blur-out on hero when the About section approaches ----------
   const heroTitle = document.querySelector('.hero-title');
   const heroSub = document.querySelector('.hero-sub');
   let ticking = false;
@@ -296,21 +328,17 @@
   window.addEventListener('scroll', () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {
-        const scrolled = window.pageYOffset;
-
-        // Blur-out animation when reaching the About section
         const aboutSection = document.getElementById('about');
-        const aboutTop = aboutSection ? aboutSection.offsetTop : window.innerHeight;
-        if (scrolled > aboutTop - window.innerHeight * 0.5) {
+        const aboutTop = aboutSection
+          ? aboutSection.getBoundingClientRect().top + window.pageYOffset
+          : window.innerHeight;
+
+        if (window.pageYOffset > aboutTop - window.innerHeight * 0.5) {
           heroTitle.classList.add('blur-out');
           heroSub.classList.add('blur-out');
         } else {
           heroTitle.classList.remove('blur-out');
           heroSub.classList.remove('blur-out');
-          // Only apply parallax when not blurred out
-          if (scrolled < window.innerHeight) {
-            heroTitle.style.transform = `translateY(${scrolled * 0.15}px)`;
-          }
         }
         ticking = false;
       });
@@ -371,8 +399,5 @@
     'font-size: 1.2rem; font-weight: bold; color: #00F0FF;',
     'font-size: 0.9rem; color: #8A8782;'
   );
-
-  // ---------- Init ----------
-  applyContent();
 
 })();
