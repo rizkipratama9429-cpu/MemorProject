@@ -585,6 +585,62 @@ a {
   border-right: 0;
 }
 
+/* Gecko: cut-out subject layered between the grid and the hero type. */
+.hero-gecko {
+  position: absolute;
+  top: clamp(10rem, 18vh, 14rem);
+  left: 50%;
+  translate: -50% 0;
+  width: clamp(460px, 50vw, 940px);
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(52% 48% at 52% 40%, rgba(0, 240, 255, 0.13), transparent 72%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 100%);
+}
+
+.hero-gecko img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 28px 46px rgba(0, 0, 0, 0.45));
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, rgba(0, 0, 0, 0.7) 86%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 72%, rgba(0, 0, 0, 0.7) 86%, transparent 100%);
+  animation: gecko-in 1.4s var(--ease-smooth) 0.3s both;
+}
+
+.hero-gecko.blur-out {
+  animation: gecko-blur-out 1.2s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+}
+
+@keyframes gecko-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes gecko-blur-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(16px);
+  }
+}
+
+[data-theme="light"] .hero-gecko {
+  background: radial-gradient(52% 48% at 52% 40%, rgba(0, 102, 204, 0.1), transparent 72%);
+}
+
 .hero-inner {
   position: relative;
   z-index: 1;
@@ -2071,6 +2127,11 @@ a {
     text-align: left;
   }
 
+  .hero-gecko {
+    width: 50vw;
+    top: 20rem;
+  }
+
   .hero-base {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -2195,6 +2256,11 @@ a {
     font-size: clamp(2.75rem, 14vw, 4.25rem);
   }
 
+  .hero-gecko {
+    width: 74vw;
+    top: 9.25rem;
+  }
+
   .hero-feature {
     grid-template-columns: 88px minmax(0, 1fr);
     gap: 0.85rem;
@@ -2243,6 +2309,7 @@ a {
   .scroll-line::after,
   .nav-link,
   .hero-title .line,
+  .hero-gecko img,
   .hero-meta,
   .hero-sub,
   .hero-actions,
@@ -2252,7 +2319,8 @@ a {
   }
 
   .hero-title.blur-out,
-  .hero-sub.blur-out {
+  .hero-sub.blur-out,
+  .hero-gecko.blur-out {
     animation-duration: 0.01ms !important;
   }
 

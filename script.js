@@ -10,9 +10,9 @@
   const defaults = {
     logo: 'V',
     links: 'About, Work, Writing, Contact',
-    hero1: 'Modern personal profil',
+    hero1: 'VIN UIX',
     hero2: '',
-    hero3: 'Anti ai slop',
+    hero3: 'Portfolio',
     heroSub: "I'm Vinnyrz — a designer-developer hybrid who cares about the details most people never notice but everyone feels.",
     marquee: 'Product Design, Front-End Development, Design Systems, Prototyping, Creative Direction',
     aboutLead: "I've spent the last 8 years at the intersection of design and code — where most people see a handoff, I see a conversation.",
@@ -323,6 +323,7 @@
   // ---------- Blur-out on hero when the About section approaches ----------
   const heroTitle = document.querySelector('.hero-title');
   const heroSub = document.querySelector('.hero-sub');
+  const heroGecko = document.querySelector('.hero-gecko');
   let ticking = false;
 
   window.addEventListener('scroll', () => {
@@ -336,9 +337,11 @@
         if (window.pageYOffset > aboutTop - window.innerHeight * 0.5) {
           heroTitle.classList.add('blur-out');
           heroSub.classList.add('blur-out');
+          heroGecko.classList.add('blur-out');
         } else {
           heroTitle.classList.remove('blur-out');
           heroSub.classList.remove('blur-out');
+          heroGecko.classList.remove('blur-out');
         }
         ticking = false;
       });
