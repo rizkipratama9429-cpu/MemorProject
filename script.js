@@ -1,6 +1,6 @@
 // ============================================
 // Personal Profile — Futuristic Editable
-// Phase 3: Theme Toggle, Magnetic Buttons
+// Phase 3: Magnetic Buttons, Motion & Content
 // ============================================
 
 (function() {
@@ -48,6 +48,11 @@
     document.getElementById('locationText').textContent = content.location;
     document.getElementById('contactEmail').textContent = content.email;
 
+    const footerEmail = document.getElementById('footerEmail');
+    footerEmail.textContent = content.email;
+    footerEmail.href = `mailto:${content.email}`;
+    document.getElementById('footerLocation').textContent = content.location;
+
     // Nav links
     const links = content.links.split(',').map(l => l.trim()).filter(l => l);
     const navLinks = document.getElementById('navLinks');
@@ -89,26 +94,20 @@
 
   applyContent();
 
-  // ---------- Theme Toggle ----------
-  const themeToggle = document.getElementById('themeToggle');
-  const html = document.documentElement;
+  // ---------- Footer Local Time ----------
+  const footerTime = document.getElementById('footerTime');
+  const footerTimeFormat = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/Los_Angeles'
+  });
 
-  // Check for saved theme or prefer dark
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'light') {
-    html.setAttribute('data-theme', 'light');
+  function updateFooterTime() {
+    footerTime.textContent = footerTimeFormat.format(new Date());
   }
 
-  themeToggle.addEventListener('click', () => {
-    const currentTheme = html.getAttribute('data-theme');
-    if (currentTheme === 'light') {
-      html.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      html.setAttribute('data-theme', 'light');
-      localStorage.setItem('theme', 'light');
-    }
-  });
+  updateFooterTime();
+  window.setInterval(updateFooterTime, 30000);
 
   // ---------- Edit Panel ----------
   const editToggle = document.getElementById('editToggle');

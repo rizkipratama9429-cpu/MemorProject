@@ -35,14 +35,6 @@
   <!-- Analytics (uncomment and add your domain) -->
   <!-- <script defer data-domain="vinnyrz.com" src="https://plausible.io/js/script.js"></script> -->
 
-  <script>
-    try {
-      if (localStorage.getItem('theme') === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    } catch (e) {}
-  </script>
-
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -60,17 +52,6 @@
   <!-- Custom Cursor -->
   <div class="cursor-dot" id="cursorDot"></div>
   <div class="cursor-ring" id="cursorRing"></div>
-
-  <!-- Theme Toggle -->
-  <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
-    <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="5"/>
-      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-    </svg>
-    <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  </button>
 
   <!-- Edit Toggle -->
   <button class="edit-toggle" id="editToggle" title="Toggle Edit Mode">
@@ -498,9 +479,58 @@
   </section>
 
   <!-- Footer -->
-  <footer class="footer">
-    <span>© 2025 Vinnyrz</span>
-    <span>Built with care, not templates.</span>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="#hero" class="footer-brand-mark" aria-label="Vinnyrz — back to top">
+            <span class="footer-brand-icon">V</span>
+            <span class="footer-brand-name">Vinnyrz</span>
+          </a>
+          <p class="footer-statement">Designing and building<br>interfaces that feel inevitable.</p>
+          <a href="#contact" class="footer-cta magnetic">
+            <span>Start a project</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M7 17L17 7M7 7h10v10"/>
+            </svg>
+          </a>
+          <p class="footer-availability"><span class="status-dot"></span> Available for freelance</p>
+        </div>
+
+        <nav class="footer-nav" aria-label="Footer">
+          <div class="footer-col">
+            <h3>Explore</h3>
+            <a href="#about">About</a>
+            <a href="#work">Work</a>
+            <a href="#writing">Writing</a>
+            <a href="#contact">Contact</a>
+          </div>
+          <div class="footer-col">
+            <h3>Elsewhere</h3>
+            <a href="https://twitter.com/vinnyrz" target="_blank" rel="noopener">Twitter / X <span class="footer-ext" aria-hidden="true">↗</span></a>
+            <a href="https://www.linkedin.com/in/vinnyrz" target="_blank" rel="noopener">LinkedIn <span class="footer-ext" aria-hidden="true">↗</span></a>
+            <a href="https://dribbble.com/vinnyrz" target="_blank" rel="noopener">Dribbble <span class="footer-ext" aria-hidden="true">↗</span></a>
+            <a href="https://github.com/vinnyrz" target="_blank" rel="noopener">GitHub <span class="footer-ext" aria-hidden="true">↗</span></a>
+          </div>
+          <div class="footer-col footer-col-contact">
+            <h3>Contact</h3>
+            <a href="mailto:Hello People's" id="footerEmail">Hello People's</a>
+            <p id="footerLocation">Portland, OR</p>
+            <p class="footer-time">Local time — <span id="footerTime">—</span></p>
+          </div>
+        </nav>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 Vinnyrz</span>
+        <span class="footer-bottom-note">Built with care, not templates.</span>
+        <a href="#hero" class="footer-top-link">Back to top <span aria-hidden="true">↑</span></a>
+      </div>
+    </div>
+
+    <div class="footer-wordmark" aria-hidden="true">
+      <span>VIN UIX</span>
+    </div>
   </footer>
 
   <script src="script.js"></script>

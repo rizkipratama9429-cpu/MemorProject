@@ -4,11 +4,12 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 
 ## Features
 
-- Dark/Light theme toggle
+- Single dark theme, no toggle
 - Custom cursor with hover effects
 - Scroll progress bar
 - Magnetic buttons
 - Editable content (localStorage)
+- Footer with editable contact details and local time
 - Contact form
 - Fully responsive
 - SEO optimized
@@ -64,7 +65,7 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 
 ```
 ├── index.html          # Main page
-├── styles.css          # All styles + themes
+├── styles.css          # All styles
 ├── script.js           # All interactions
 ├── vercel.json         # Vercel deployment config
 ├── netlify.toml        # Netlify deployment config

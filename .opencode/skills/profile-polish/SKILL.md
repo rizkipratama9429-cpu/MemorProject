@@ -9,11 +9,11 @@ This is Vinnyrz's personal profile website — a futuristic dark-themed portfoli
 
 **Files:**
 - `index.html` — Main page structure
-- `styles.css` — All styles, themes, animations
-- `script.js` — All interactions (cursor, scroll, theme, edit panel)
+- `styles.css` — All styles, animations
+- `script.js` — All interactions (cursor, scroll, edit panel, footer)
 
 **Key Features:**
-- Dark/Light theme toggle (localStorage)
+- Single dark theme (no theme toggle)
 - Custom cursor with hover states
 - Scroll progress bar
 - Magnetic buttons
@@ -59,5 +59,5 @@ This is Vinnyrz's personal profile website — a futuristic dark-themed portfoli
 
 1. **Always test responsive** — check mobile breakpoints at 768px and 1024px
 2. **Preserve the edit panel** — don't break localStorage functionality
-3. **Theme toggle must work** — test both dark and light modes
+3. **Stay dark-only** — the site ships one theme; don't reintroduce a toggle
 4. **Commit and push** — after changes, commit with descriptive message and push to GitHub
