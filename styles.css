@@ -735,186 +735,24 @@ a {
 }
 
 .hero-board {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
-  gap: 1.5rem;
-  align-items: stretch;
+  display: block;
   animation: fadeIn 1s var(--ease-smooth) 0.85s both;
 }
 
-.hero-feature {
-  position: relative;
-  display: grid;
-  grid-template-columns: 132px minmax(0, 1fr);
-  gap: 1.1rem;
-  align-items: center;
-  padding: 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  transition: border-color 0.4s var(--ease-smooth), transform 0.4s var(--ease-smooth), box-shadow 0.4s var(--ease-smooth);
-}
-
-.hero-feature:hover {
-  border-color: var(--line-bright);
-  transform: translateY(-3px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-}
-
-.hero-feature-visual {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  background:
-    radial-gradient(120% 120% at 75% 10%, rgba(0, 240, 255, 0.16), transparent 60%),
-    linear-gradient(150deg, #11111A, #0A0A0F);
-}
-
-.hf-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0, 240, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.08) 1px, transparent 1px);
-  background-size: 18px 18px;
-  -webkit-mask-image: radial-gradient(70% 70% at 50% 50%, #000, transparent 80%);
-  mask-image: radial-gradient(70% 70% at 50% 50%, #000, transparent 80%);
-}
-
-.hf-ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 70px;
-  height: 70px;
-  margin: -35px 0 0 -35px;
-  border: 1px solid rgba(0, 240, 255, 0.28);
-  border-radius: 50%;
-}
-
-.hf-ring::before,
-.hf-ring::after {
-  content: '';
-  position: absolute;
-  background: rgba(0, 240, 255, 0.18);
-}
-
-.hf-ring::before {
-  top: -9px;
-  bottom: -9px;
-  left: 50%;
-  width: 1px;
-}
-
-.hf-ring::after {
-  left: -9px;
-  right: -9px;
-  top: 50%;
-  height: 1px;
-}
-
-.hf-mark {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--accent);
-  text-shadow: var(--glow);
-}
-
-.hf-corner {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-color: var(--accent);
-  border-style: solid;
-  opacity: 0.5;
-}
-
-.hf-corner-a {
-  top: 8px;
-  right: 8px;
-  border-width: 1px 1px 0 0;
-}
-
-.hf-corner-b {
-  bottom: 8px;
-  left: 8px;
-  border-width: 0 0 1px 1px;
-}
-
-.hf-code {
-  position: absolute;
-  left: 8px;
-  bottom: 7px;
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.12em;
-  color: var(--ink-light);
-}
-
-.hero-feature-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.hero-feature-kicker {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--ink-light);
-}
-
-.hero-feature-title {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 600;
-  line-height: 1.1;
-}
-
-.hero-feature-desc {
-  font-size: 0.8rem;
-  color: var(--ink-light);
-  line-height: 1.5;
-}
-
-.hero-feature-arrow {
-  position: absolute;
-  top: 0.9rem;
-  right: 1rem;
-  font-size: 1rem;
-  color: var(--accent);
-  transition: transform 0.3s var(--ease-smooth);
-}
-
-.hero-feature:hover .hero-feature-arrow {
-  transform: translate(3px, -3px);
-}
-
 .hero-stats {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
   margin: 0;
-  border-top: 1px solid var(--line);
 }
 
 .hero-stat {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--line);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
 }
 
 .hero-stat dt {
@@ -2149,29 +1987,6 @@ a {
 .reveal-delay-3 { transition-delay: 0.3s; }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1200px) {
-  .hero-board {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-stats {
-    flex-direction: row;
-    border-top: 0;
-  }
-
-  .hero-stat {
-    flex: 1;
-    padding: 0.7rem 0 0;
-    border-top: 1px solid var(--line);
-    border-bottom: 0;
-  }
-
-  .hero-stat + .hero-stat {
-    padding-left: 0.9rem;
-    border-left: 1px solid var(--line);
-  }
-}
-
 @media (max-width: 900px) {
   .footer-top {
     grid-template-columns: 1fr;
@@ -2181,27 +1996,6 @@ a {
   .hero-base {
     grid-template-columns: 1fr;
     gap: 2.5rem;
-  }
-
-  .hero-board {
-    grid-template-columns: 1.15fr 0.85fr;
-  }
-
-  .hero-stats {
-    flex-direction: column;
-    border-top: 1px solid var(--line);
-  }
-
-  .hero-stat {
-    flex: none;
-    padding: 0.65rem 0;
-    border-top: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .hero-stat + .hero-stat {
-    padding-left: 0;
-    border-left: 0;
   }
 }
 
@@ -2273,30 +2067,8 @@ a {
     padding-top: 2rem;
   }
 
-  .hero-board {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .hero-feature {
-    grid-template-columns: 110px minmax(0, 1fr);
-  }
-
   .hero-stats {
-    flex-direction: row;
-    border-top: 0;
-  }
-
-  .hero-stat {
-    flex: 1;
-    padding: 0.7rem 0 0;
-    border-top: 1px solid var(--line);
-    border-bottom: 0;
-  }
-
-  .hero-stat + .hero-stat {
-    padding-left: 0.8rem;
-    border-left: 1px solid var(--line);
+    gap: 1rem;
   }
 
   .hero-foot {
@@ -2334,6 +2106,10 @@ a {
 
   .work-item:hover {
     padding-left: 1rem;
+  }
+
+  .work-thumb {
+    width: 100%;
   }
 
   .thumb-placeholder {
@@ -2446,27 +2222,13 @@ a {
     top: 9.25rem;
   }
 
-  .hero-feature {
-    grid-template-columns: 88px minmax(0, 1fr);
+  .hero-stats {
     gap: 0.85rem;
-    padding: 0.8rem;
   }
 
-  .hero-feature-visual {
-    aspect-ratio: 1 / 1;
-    min-height: 0;
-  }
-
-  .hero-feature-title {
-    font-size: 1.15rem;
-  }
-
-  .hero-feature-desc {
-    font-size: 0.72rem;
-  }
-
-  .hero-feature-kicker {
-    font-size: 0.55rem;
+  .hero-stat {
+    gap: 0.4rem;
+    padding-top: 0.65rem;
   }
 
   .hero-actions {

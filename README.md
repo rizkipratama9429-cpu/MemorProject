@@ -58,7 +58,7 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 2. In `index.html`, find each `.thumb-placeholder`
 3. Replace with:
 ```html
-<img src="meridian.jpg" alt="Meridian" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px;">
+<img src="fieldnotes.jpg" alt="Fieldnotes" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px;">
 ```
 
 ## File Structure
