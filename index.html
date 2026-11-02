@@ -32,9 +32,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <!-- Smooth scroll engine (Lenis) -->
+  <!-- Smooth scroll engine (Lenis) + 3D specimen viewer (Three.js) -->
   <script type="importmap">
-  { "imports": { "lenis": "https://cdn.jsdelivr.net/npm/lenis@1.1.18/+esm" } }
+  {
+    "imports": {
+      "lenis": "https://cdn.jsdelivr.net/npm/lenis@1.1.18/+esm",
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+    }
+  }
   </script>
 
   <!-- Analytics (uncomment and add your domain) -->
@@ -233,6 +239,31 @@
         <div class="fact">
           <span class="fact-num">∞</span>
           <span class="fact-label">Cups of coffee</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-specimen" id="aboutSpecimen">
+      <div class="specimen-stage" id="specimenStage">
+        <canvas id="specimenCanvas" aria-label="Interactive 3D CT scan of a Japanese gecko. Drag to inspect.">
+          A 3D scan of Gekko japonicus.
+        </canvas>
+
+        <div class="specimen-hud specimen-hud-top">
+          <span class="specimen-tag"><span class="specimen-pulse"></span>Specimen 001 — Gekko japonicus</span>
+          <span class="specimen-meta">CT scan / real-time</span>
+        </div>
+
+        <div class="specimen-hud specimen-hud-bottom">
+          <span class="specimen-hint">Drag to inspect</span>
+          <span class="specimen-meta" id="specimenAzimuth">AZ 000°</span>
+        </div>
+
+        <div class="specimen-load" id="specimenLoad">
+          <div class="specimen-load-inner">
+            <span class="specimen-load-label">Preparing specimen <span id="specimenLoadPct">0%</span></span>
+            <span class="specimen-load-bar"><span id="specimenLoadFill"></span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -506,5 +537,6 @@
 
   <script src="script.js"></script>
   <script type="module" src="motion.js"></script>
+  <script type="module" src="about3d.js"></script>
 </body>
 </html>

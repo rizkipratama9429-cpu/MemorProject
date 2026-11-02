@@ -151,6 +151,13 @@ a {
   opacity: 1;
 }
 
+.cursor-ring.inspect {
+  width: 68px;
+  height: 68px;
+  background: var(--accent-glow);
+  opacity: 1;
+}
+
 /* ---------- Scroll Progress ---------- */
 .scroll-progress {
   position: fixed;
@@ -1119,6 +1126,181 @@ a {
   color: var(--ink-light);
 }
 
+/* ---------- About: 3D specimen ---------- */
+.about-specimen {
+  margin-top: 4.5rem;
+}
+
+.specimen-stage {
+  position: relative;
+  height: clamp(360px, 52vh, 540px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    radial-gradient(48% 64% at 50% 44%, rgba(0, 240, 255, 0.1), transparent 70%),
+    radial-gradient(90% 120% at 50% 120%, rgba(0, 240, 255, 0.055), transparent 62%),
+    rgba(3, 9, 13, 0.62);
+  isolation: isolate;
+  touch-action: pan-y;
+  user-select: none;
+  transition: border-color 0.5s var(--ease-smooth), box-shadow 0.5s var(--ease-smooth);
+}
+
+.specimen-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: radial-gradient(72% 72% at 50% 50%, #000 0%, transparent 100%);
+  mask-image: radial-gradient(72% 72% at 50% 50%, #000 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.specimen-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(82% 82% at 50% 46%, transparent 42%, rgba(0, 0, 0, 0.52) 100%);
+  pointer-events: none;
+}
+
+.specimen-stage.is-dragging {
+  border-color: var(--line-bright);
+  box-shadow: inset 0 0 70px rgba(0, 240, 255, 0.05);
+}
+
+#specimenCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-smooth);
+}
+
+.specimen-stage.is-ready #specimenCanvas {
+  opacity: 1;
+}
+
+.specimen-hud {
+  position: absolute;
+  left: 1.4rem;
+  right: 1.4rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+.specimen-hud-top { top: 1.15rem; }
+.specimen-hud-bottom { bottom: 1.15rem; }
+
+.specimen-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--ink);
+}
+
+.specimen-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: var(--glow);
+  animation: specimen-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes specimen-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.specimen-hint {
+  position: relative;
+  padding-left: 2.5rem;
+  color: var(--ink);
+  transition: opacity 0.5s var(--ease-smooth);
+}
+
+.specimen-hint::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 1.8rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.specimen-stage.is-touched .specimen-hint {
+  opacity: 0.38;
+}
+
+.specimen-load {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  background: rgba(3, 9, 13, 0.7);
+  transition: opacity 0.8s var(--ease-smooth);
+  pointer-events: none;
+}
+
+.specimen-load.is-done {
+  opacity: 0;
+}
+
+.specimen-load-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: min(230px, 55%);
+}
+
+.specimen-load-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+.specimen-load-bar {
+  display: block;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.specimen-load-bar span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background: var(--accent);
+  box-shadow: var(--glow);
+  transition: width 0.3s linear;
+}
+
 /* ---------- Skills ---------- */
 .skills-grid {
   display: grid;
@@ -2079,6 +2261,25 @@ a {
     gap: 3rem;
   }
 
+  .about-specimen {
+    margin-top: 3.5rem;
+  }
+
+  .specimen-stage {
+    height: clamp(300px, 46vh, 420px);
+  }
+
+  .specimen-hud {
+    left: 1rem;
+    right: 1rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+  }
+
+  .specimen-hud-top .specimen-meta {
+    display: none;
+  }
+
   .skills-grid,
   .writing-grid,
   .testimonials-grid {
@@ -2256,5 +2457,9 @@ a {
   .hero-sub.blur-out,
   .hero-gecko.blur-out {
     animation-duration: 0.01ms !important;
+  }
+
+  .specimen-pulse {
+    animation: none;
   }
 }

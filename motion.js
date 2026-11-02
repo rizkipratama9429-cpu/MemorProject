@@ -47,6 +47,7 @@ const REVEAL_SELECTOR = [
   "#about .about-lead",
   "#about .about-text > p:not(.about-lead)",
   "#about .fact",
+  "#about .about-specimen",
   "#skills .section-label",
   "#skills .skill-card",
   "#work .section-label",
