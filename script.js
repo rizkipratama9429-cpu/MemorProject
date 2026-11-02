@@ -258,25 +258,7 @@
   document.body.classList.toggle('page-scrolled', window.pageYOffset > 160);
 
   // ---------- Scroll Reveal ----------
-  const revealElements = document.querySelectorAll(
-    '.about-text, .about-facts, .skill-card, .work-item, .testimonial-card, .writing-card, .contact-title, .contact-sub, .contact-email, .contact-socials'
-  );
-
-  revealElements.forEach(el => el.classList.add('reveal'));
-
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  }, {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-  });
-
-  revealElements.forEach(el => revealObserver.observe(el));
+  // Handled by motion.js with the spring engine: layered, staggered reveals.
 
   // ---------- Smooth scroll for nav links + Jello hover ----------
   // Delegated: applyContent() rebuilds the links whenever the edit panel changes.
@@ -347,21 +329,6 @@
       ticking = true;
     }
   }, { passive: true });
-
-  // ---------- Work item stagger on scroll ----------
-  const workItems = document.querySelectorAll('.work-item');
-  const workObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => {
-          entry.target.classList.add('visible');
-        }, i * 80);
-        workObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
-
-  workItems.forEach(item => workObserver.observe(item));
 
   // ---------- Contact Form ----------
   const contactForm = document.getElementById('contactForm');
