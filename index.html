@@ -32,6 +32,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+  <!-- Smooth scroll engine (Lenis) -->
+  <script type="importmap">
+  { "imports": { "lenis": "https://cdn.jsdelivr.net/npm/lenis@1.1.18/+esm" } }
+  </script>
+
   <!-- Analytics (uncomment and add your domain) -->
   <!-- <script defer data-domain="vinnyrz.com" src="https://plausible.io/js/script.js"></script> -->
 
@@ -61,7 +66,7 @@
   </button>
 
   <!-- Edit Panel -->
-  <div class="edit-panel" id="editPanel">
+  <div class="edit-panel" id="editPanel" data-lenis-prevent>
     <div class="edit-panel-header">
       <h3>Edit Content</h3>
       <button class="edit-close" id="editClose">&times;</button>
@@ -500,5 +505,6 @@
   </footer>
 
   <script src="script.js"></script>
+  <script type="module" src="motion.js"></script>
 </body>
 </html>
