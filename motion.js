@@ -16,10 +16,10 @@ const wordmark = document.querySelector(".footer-wordmark span");
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 class Spring {
-  constructor(value, tension, friction) {
+  constructor(value, tension, friction, target = value) {
     this.value = value;
     this.velocity = 0;
-    this.target = value;
+    this.target = target;
     this.tension = tension;
     this.friction = friction;
   }
@@ -67,6 +67,9 @@ const REVEAL_SELECTOR = [
   ".site-footer .footer-bottom",
 ].join(",");
 
+const REVEAL_DISTANCE = 38;
+const REVEAL_STAGGER = 90;
+
 const reveals = [];
 const revealCounts = new Map();
 
@@ -78,34 +81,83 @@ function initReveals() {
 
     const record = {
       el,
-      y: new Spring(38, 200, 26),
-      opacity: new Spring(0, 200, 26),
-      delay: index * 90,
+      group,
+      index,
+      y: new Spring(REVEAL_DISTANCE, 200, 26, 0),
+      opacity: new Spring(0, 200, 26, 1),
+      delayDown: index * REVEAL_STAGGER,
+      delayUp: 0,
+      delay: 0,
       active: false,
-      started: false,
+      visible: false,
     };
 
     el.style.opacity = "0";
-    el.style.transform = "translate3d(0, 38px, 0)";
+    el.style.transform = `translate3d(0, ${REVEAL_DISTANCE}px, 0)`;
     el.style.willChange = "transform, opacity";
     el.__reveal = record;
     reveals.push(record);
   });
 
+  // Scrolling up meets the bottom layer first, so run the stagger backwards.
+  for (const record of reveals) {
+    const size = revealCounts.get(record.group) || 1;
+    record.delayUp = (size - 1 - record.index) * REVEAL_STAGGER;
+  }
+
   const revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         const record = entry.target.__reveal;
-        if (!record || record.started || !entry.isIntersecting) return;
-        record.started = true;
-        record.active = true;
-        revealObserver.unobserve(entry.target);
+        if (!record) return;
+
+        if (entry.isIntersecting) {
+          if (!record.visible) startReveal(record, entry);
+        } else if (record.visible) {
+          resetReveal(record);
+        }
       });
     },
-    { threshold: 0, rootMargin: "0px 0px -10% 0px" }
+    // Expanded root: layers arm slightly before entering and only reset
+    // once they are fully off-screen, so the re-arm can never be seen.
+    { threshold: 0, rootMargin: "8% 0px 8% 0px" }
   );
 
   reveals.forEach((record) => revealObserver.observe(record.el));
+}
+
+function startReveal(record, entry) {
+  // Elements crossed from the top edge on the way up; from the bottom on the way down.
+  const enteredFromTop = entry.boundingClientRect.bottom < window.innerHeight * 0.5;
+
+  record.visible = true;
+  record.active = true;
+  record.delay = enteredFromTop ? record.delayUp : record.delayDown;
+
+  record.y.value = REVEAL_DISTANCE;
+  record.y.velocity = 0;
+  record.opacity.value = 0;
+  record.opacity.velocity = 0;
+
+  record.el.style.opacity = "0";
+  record.el.style.transform = `translate3d(0, ${REVEAL_DISTANCE}px, 0)`;
+  record.el.style.willChange = "transform, opacity";
+}
+
+function resetReveal(record) {
+  // Only ever reset once the layer is fully outside the viewport, so the
+  // re-arm is invisible and the next pass can play in again.
+  record.visible = false;
+  record.active = false;
+
+  record.y.value = REVEAL_DISTANCE;
+  record.y.velocity = 0;
+  record.opacity.value = 0;
+  record.opacity.velocity = 0;
+
+  record.el.style.opacity = "0";
+  record.el.style.transform = `translate3d(0, ${REVEAL_DISTANCE}px, 0)`;
+  record.el.style.removeProperty("will-change");
 }
 
 function stepReveals(dt) {
