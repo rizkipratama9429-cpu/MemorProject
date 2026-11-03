@@ -1,28 +1,36 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// ---------- About specimen: scroll-driven bronze study ----------
-// A contained Three.js stage inside the About layer. The camera orbits the
-// scan as the layer crosses the viewport; drag adds a manual inspection
-// offset on top of the scroll orbit.
+// ---------- About: full-bleed bronze specimen ----------
+// The gecko is the About layer now, not a card inside it. Scrolling drifts
+// it along the x axis while the copy moves through two editorial beats.
 
 const stage = document.querySelector("#specimenStage");
 const canvas = document.querySelector("#specimenCanvas");
 
 if (stage && canvas) {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const sceneSection = document.querySelector("#about");
+  const pin = document.querySelector("#aboutPin");
   const azimuthEl = document.querySelector("#specimenAzimuth");
   const loadEl = document.querySelector("#specimenLoad");
   const loadFill = document.querySelector("#specimenLoadFill");
   const loadPct = document.querySelector("#specimenLoadPct");
+  const title = document.querySelector("#aboutTitle");
+  const beats = Array.from(document.querySelectorAll("[data-about-beat]"));
+  const railFills = Array.from(document.querySelectorAll("[data-rail]"));
 
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
   // ---------- Scene ----------
   const scene = new THREE.Scene();
+  // The orbit carries scroll translation; the pivot carries drag rotation, so
+  // the contact shadow drifts with the model without spinning with it.
+  const orbit = new THREE.Group();
+  scene.add(orbit);
 
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 60);
-  camera.position.set(0, 2.4, 4.8);
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
+  camera.position.set(0, 3.4, 5.2);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -81,12 +89,12 @@ if (stage && canvas) {
   keyLight.position.set(4, 6, 3);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(1024, 1024);
-  keyLight.shadow.camera.left = -5;
-  keyLight.shadow.camera.right = 5;
-  keyLight.shadow.camera.top = 5;
-  keyLight.shadow.camera.bottom = -5;
+  keyLight.shadow.camera.left = -6;
+  keyLight.shadow.camera.right = 6;
+  keyLight.shadow.camera.top = 6;
+  keyLight.shadow.camera.bottom = -6;
   keyLight.shadow.camera.near = 0.5;
-  keyLight.shadow.camera.far = 20;
+  keyLight.shadow.camera.far = 24;
   keyLight.shadow.bias = -0.001;
   scene.add(keyLight);
 
@@ -98,11 +106,13 @@ if (stage && canvas) {
   fillLight.position.set(-2, -4, 3);
   scene.add(fillLight);
 
-  const underLight = new THREE.PointLight(0x00f0ff, 14, 9, 2);
+  const underLight = new THREE.PointLight(0x00f0ff, 14, 12, 2);
   underLight.position.set(0, -1.8, 2.4);
   scene.add(underLight);
 
   // ---------- Soft contact shadow ----------
+  let contactShadow = null;
+
   function createContactShadow() {
     const shadowCanvas = document.createElement("canvas");
     shadowCanvas.width = 256;
@@ -122,11 +132,10 @@ if (stage && canvas) {
       depthWrite: false,
       opacity: 0.9,
     });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 2.6), material);
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = -0.7;
-    scene.add(mesh);
-    return mesh;
+    contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 2.6), material);
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.y = -0.7;
+    orbit.add(contactShadow);
   }
   createContactShadow();
 
@@ -158,9 +167,9 @@ if (stage && canvas) {
     const colors = new Float32Array(SPARK_COUNT * 3);
 
     for (let i = 0; i < SPARK_COUNT; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 5.6;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 2.8;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 2.2;
+      positions[i * 3] = (Math.random() - 0.5) * 8.4;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 3.4;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 3.2;
 
       if (Math.random() < 0.55) {
         colors[i * 3] = 1.0;
@@ -174,7 +183,7 @@ if (stage && canvas) {
 
       sparkData.push({
         speedX: (Math.random() - 0.5) * 0.08,
-        speedY: 0.035 + Math.random() * 0.08,
+        speedY: 0.025 + Math.random() * 0.07,
         speedZ: (Math.random() - 0.5) * 0.08,
         swaySpeed: 0.4 + Math.random() * 1.2,
         swayRadius: 0.02 + Math.random() * 0.06,
@@ -200,13 +209,61 @@ if (stage && canvas) {
   }
   createSparks();
 
+  // ---------- Copy: per-letter blur-up ----------
+  function splitChars(root) {
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    let index = 0;
+
+    textNodes.forEach((node) => {
+      const text = node.nodeValue;
+      if (!text || !text.trim()) return;
+
+      const fragment = document.createDocumentFragment();
+
+      for (const character of text) {
+        if (character === " " || character === "\n" || character === "\t") {
+          fragment.appendChild(document.createTextNode(character));
+          continue;
+        }
+
+        const span = document.createElement("span");
+        span.className = "about-char";
+        span.textContent = character;
+        span.style.transitionDelay = `${(index * 0.028).toFixed(3)}s`;
+        fragment.appendChild(span);
+        index += 1;
+      }
+
+      node.parentNode.replaceChild(fragment, node);
+    });
+  }
+  splitChars(title);
+
+  // The first beat is active in the markup as a no-JS fallback. Hand it to
+  // the scroll timeline from here so it can play when the scene actually pins.
+  beats.forEach((el) => el.classList.remove("is-active"));
+
   // ---------- Model ----------
   const pivot = new THREE.Group();
-  scene.add(pivot);
+  orbit.add(pivot);
 
   let modelRadius = 1.8;
-  let cameraRadius = 4.6;
+  let cameraRadius = 5.5;
+  let travelStart = 0;
+  let travelEnd = 0;
+  let baseAzimuth = -0.72;
+  let baseElevation = 0.66;
+  let baseYaw = 0;
+  let baseOffsetY = 0;
   let modelReady = false;
+
+  const lookAt = new THREE.Vector3(0, -0.18, 0);
+  const cameraTarget = new THREE.Vector3();
 
   function setLoadProgress(percent) {
     const value = clamp(Math.round(percent), 0, 100);
@@ -221,6 +278,51 @@ if (stage && canvas) {
       loadEl.classList.add("is-done");
       window.setTimeout(() => loadEl.remove(), 900);
     }
+  }
+
+  function updateCameraFit() {
+    const width = stage.clientWidth || 1;
+    const height = stage.clientHeight || 1;
+    if (!width || !height) return;
+
+    const narrow = width <= 768;
+    const verticalHalf = THREE.MathUtils.degToRad(camera.fov / 2);
+    const horizontalHalf = Math.atan(Math.tan(verticalHalf) * (width / height));
+    const horizontalFit = (modelRadius * (narrow ? 1.18 : 1.1)) / Math.sin(horizontalHalf);
+
+    // On phones the scan is turned upright, so its silhouette is far narrower
+    // than its bounding sphere. Fitting the sphere would leave it tiny.
+    cameraRadius = Math.max(
+      modelRadius * (narrow ? 2.7 : 3.3),
+      horizontalFit * (narrow ? 0.88 : 1)
+    );
+
+    // Keep the camera off the x axis so the scroll drift stays horizontal on
+    // screen. On phones the specimen itself is turned upright instead, because
+    // a vertical silhouette reads better in a portrait viewport.
+    baseAzimuth = -0.72;
+    baseElevation = narrow ? 0.78 : 0.66;
+    baseYaw = narrow ? -5.34 : 0;
+
+    // Hold the specimen above the copy on portrait screens; the practice beat
+    // is tall enough to need the whole lower half. Lift the whole orbit rather
+    // than tilting the camera, so the scan keeps its established silhouette.
+    // Scaled with camera distance so the lift holds on tablets as well as phones.
+    baseOffsetY = narrow ? cameraRadius * 0.13 : 0;
+    lookAt.set(0, narrow ? -0.7 : -0.18, 0);
+
+    cameraTarget.set(
+      Math.sin(baseAzimuth) * Math.cos(baseElevation) * cameraRadius,
+      Math.sin(baseElevation) * cameraRadius,
+      Math.cos(baseAzimuth) * Math.cos(baseElevation) * cameraRadius
+    );
+
+    // Horizontal drift, measured against the visible plane at the model.
+    const halfWidth = cameraRadius * Math.tan(verticalHalf) * (width / height);
+    const startFraction = narrow ? 0.38 : 0.54;
+    const endFraction = narrow ? 0.64 : 0.74;
+    travelStart = (startFraction * 2 - 1) * halfWidth;
+    travelEnd = (endFraction * 2 - 1) * halfWidth;
   }
 
   function buildModel(gltf) {
@@ -262,8 +364,7 @@ if (stage && canvas) {
     pivot.add(model);
 
     // Sit the contact shadow just under the lowest point of the scan.
-    const shadow = scene.children.find((child) => child.geometry?.type === "PlaneGeometry");
-    if (shadow) shadow.position.y = finalBox.min.y - 0.06;
+    if (contactShadow) contactShadow.position.y = finalBox.min.y - 0.06;
 
     finishLoading();
   }
@@ -284,8 +385,6 @@ if (stage && canvas) {
   );
 
   // ---------- Interaction state ----------
-  let orbitProgress = 0;
-  let scrollVelocity = 0;
   let pointerX = 0;
   let pointerY = 0;
   let targetPointerX = 0;
@@ -301,9 +400,6 @@ if (stage && canvas) {
   let lastPointerX = 0;
   let lastPointerY = 0;
   let touched = false;
-
-  const BASE_AZIMUTH = -0.72;
-  const BASE_ELEVATION = 0.66;
 
   stage.addEventListener("pointerenter", () => {
     document.querySelector("#cursorRing")?.classList.add("inspect");
@@ -357,13 +453,6 @@ if (stage && canvas) {
   stage.addEventListener("pointercancel", endDrag);
 
   // ---------- Sizing / visibility ----------
-  function updateCameraFit() {
-    const verticalHalf = THREE.MathUtils.degToRad(camera.fov / 2);
-    const horizontalHalf = Math.atan(Math.tan(verticalHalf) * camera.aspect);
-    const horizontalFit = (modelRadius * 1.06) / Math.sin(horizontalHalf);
-    cameraRadius = Math.max(modelRadius * 2.6, horizontalFit);
-  }
-
   function resize() {
     const width = stage.clientWidth;
     const height = stage.clientHeight;
@@ -387,15 +476,31 @@ if (stage && canvas) {
     { rootMargin: "240px 0px" }
   ).observe(stage);
 
-  // ---------- Loop ----------
+  // ---------- Scroll timeline ----------
   const clock = new THREE.Clock();
-  const lookAt = new THREE.Vector3(0, 0.04, 0);
-  const targetPosition = new THREE.Vector3();
-  let lastAzimuthUpdate = 0;
+  let sceneProgress = 0;
+  let previousProgress = 0;
+  let activeBeat = -1;
 
   function readProgress() {
-    const rect = stage.getBoundingClientRect();
-    return clamp((window.innerHeight - rect.top) / (window.innerHeight + rect.height), 0, 1);
+    if (!sceneSection || !pin) return 0;
+    const rect = sceneSection.getBoundingClientRect();
+    const scrollable = Math.max(1, sceneSection.offsetHeight - pin.offsetHeight);
+    return clamp(-rect.top / scrollable, 0, 1);
+  }
+
+  function copyShouldShow() {
+    if (!pin) return false;
+    const rect = pin.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const visible = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
+    return rect.top <= 24 && visible > Math.min(rect.height, vh) * 0.55;
+  }
+
+  function setActiveBeat(index) {
+    if (index === activeBeat) return;
+    activeBeat = index;
+    beats.forEach((el, i) => el.classList.toggle("is-active", i === index));
   }
 
   function updateSparks(dt) {
@@ -403,8 +508,8 @@ if (stage && canvas) {
 
     const positions = sparkParticles.geometry.attributes.position.array;
     const time = clock.elapsedTime;
-    const speedMultiplier = 1 + scrollVelocity * 8;
-    const turbulence = scrollVelocity * 0.9;
+    const speedMultiplier = 1 + Math.abs(sceneProgress - previousProgress) * 60;
+    const turbulence = Math.abs(sceneProgress - previousProgress) * 4;
 
     for (let i = 0; i < SPARK_COUNT; i++) {
       const index = i * 3;
@@ -414,22 +519,30 @@ if (stage && canvas) {
       positions[index + 1] += data.speedY * dt * speedMultiplier;
       positions[index + 2] += data.speedZ * dt * speedMultiplier;
 
-      const sway = data.swayRadius * (1 + turbulence * 4);
+      const sway = data.swayRadius * (1 + turbulence);
       positions[index] += Math.sin(time * data.swaySpeed + data.phase) * sway * dt;
       positions[index + 2] += Math.cos(time * data.swaySpeed + data.phase) * sway * dt;
 
       if (
         positions[index + 1] > 1.9 ||
-        Math.abs(positions[index]) > 3.1 ||
-        Math.abs(positions[index + 2]) > 1.6
+        Math.abs(positions[index]) > 4.2 ||
+        Math.abs(positions[index + 2]) > 2.0
       ) {
-        positions[index] = (Math.random() - 0.5) * 3.2;
-        positions[index + 1] = -1.2;
-        positions[index + 2] = (Math.random() - 0.5) * 1.6;
+        positions[index] = (Math.random() - 0.5) * 5.2;
+        positions[index + 1] = -1.4;
+        positions[index + 2] = (Math.random() - 0.5) * 2.0;
       }
     }
 
     sparkParticles.geometry.attributes.position.needsUpdate = true;
+  }
+
+  function updateRail(progress) {
+    if (!railFills.length) return;
+    const first = clamp(progress / 0.52, 0, 1);
+    const second = clamp((progress - 0.52) / 0.48, 0, 1);
+    railFills[0].style.height = `${(first * 100).toFixed(1)}%`;
+    railFills[1].style.height = `${(second * 100).toFixed(1)}%`;
   }
 
   function animate(now) {
@@ -438,10 +551,10 @@ if (stage && canvas) {
 
     const dt = Math.min(clock.getDelta(), 1 / 30);
     const progress = readProgress();
-    const previousOrbit = orbitProgress;
 
-    orbitProgress += (progress - orbitProgress) * 0.045;
-    scrollVelocity = Math.abs(orbitProgress - previousOrbit);
+    previousProgress = sceneProgress;
+    const smoothing = reduceMotion.matches ? 1 : 0.055;
+    sceneProgress += (progress - sceneProgress) * smoothing;
 
     pointerX += (targetPointerX - pointerX) * 0.05;
     pointerY += (targetPointerY - pointerY) * 0.05;
@@ -449,35 +562,43 @@ if (stage && canvas) {
     dragYaw += (targetDragYaw - dragYaw) * 0.09;
     dragPitch += (targetDragPitch - dragPitch) * 0.09;
 
-    const autoOrbit = reduceMotion.matches ? 0.42 : orbitProgress * Math.PI * 2;
-    const phi = BASE_AZIMUTH + autoOrbit;
-    const elevation = BASE_ELEVATION + Math.sin(orbitProgress * Math.PI) * 0.16;
-    const radius = cameraRadius - Math.sin(orbitProgress * Math.PI) * 0.32;
+    // Only x travel: the statue drifts right across the pinned scene.
+    const travelT = reduceMotion.matches ? 1 : sceneProgress;
+    const easedT = travelT * travelT * (3 - 2 * travelT);
+    const travelX = THREE.MathUtils.lerp(travelStart, travelEnd, easedT);
+    orbit.position.x = travelX;
+    orbit.position.y = baseOffsetY;
 
-    targetPosition.set(
-      Math.sin(phi) * Math.cos(elevation) * radius,
-      Math.sin(elevation) * radius,
-      Math.cos(phi) * Math.cos(elevation) * radius
-    );
-
-    camera.position.lerp(targetPosition, 0.055);
-    camera.lookAt(lookAt);
+    // Keep the forge dust wrapped around the specimen as it travels.
+    if (sparkParticles) sparkParticles.position.set(travelX, baseOffsetY, 0);
 
     if (modelReady) {
-      pivot.rotation.y = dragYaw + pointerX * 0.04;
+      pivot.rotation.y = baseYaw + dragYaw + pointerX * 0.04;
       pivot.rotation.x = dragPitch + pointerY * 0.025;
     }
 
+    camera.position.lerp(cameraTarget, 0.08);
+    camera.lookAt(lookAt);
+
     if (sparkParticles && !reduceMotion.matches) updateSparks(dt);
+
+    if (copyShouldShow()) {
+      setActiveBeat(progress < 0.52 ? 0 : 1);
+    } else {
+      setActiveBeat(-1);
+    }
+
+    updateRail(sceneProgress);
 
     if (now - lastAzimuthUpdate > 120 && azimuthEl) {
       lastAzimuthUpdate = now;
-      const degrees = ((phi + dragYaw) * 180) / Math.PI;
+      const degrees = ((baseAzimuth - baseYaw + dragYaw) * 180) / Math.PI;
       azimuthEl.textContent = `AZ ${String(Math.abs(Math.round(degrees)) % 360).padStart(3, "0")}°`;
     }
 
     renderer.render(scene, camera);
   }
 
+  let lastAzimuthUpdate = 0;
   requestAnimationFrame(animate);
 }

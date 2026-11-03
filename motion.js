@@ -43,11 +43,7 @@ class Spring {
 // Delay steps by 90ms per layer; springs settle at 200/26 like the prompt.
 
 const REVEAL_SELECTOR = [
-  "#about .section-label",
-  "#about .about-lead",
-  "#about .about-text > p:not(.about-lead)",
-  "#about .fact",
-  "#about .about-specimen",
+  // About owns its own scroll-driven reveal; the remaining sections use springs.
   "#skills .section-label",
   "#skills .skill-card",
   "#work .section-label",
@@ -260,7 +256,9 @@ if (!reduceMotion.matches) {
 
       event.preventDefault();
       event.stopImmediatePropagation();
-      lenis.scrollTo(target, { offset: -72, duration: 1.1 });
+      // About is a full-bleed pinned scene, so it lands flush with the viewport.
+      const offset = target.id === "about" ? 0 : -72;
+      lenis.scrollTo(target, { offset, duration: 1.1 });
     },
     true
   );

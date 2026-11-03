@@ -215,43 +215,57 @@
   </div>
 
   <!-- About -->
-  <section class="section" id="about">
-    <div class="section-label"><span class="label-num">01</span> About</div>
-    <div class="about-grid">
-      <div class="about-text">
-        <p class="about-lead" id="aboutLead">I've spent the last 8 years at the intersection of design and code — where most people see a handoff, I see a conversation.</p>
-        <p id="aboutBody">My work lives in the space between what something looks like and how it actually works. I believe good design is invisible until it's missing, and great engineering is the same.</p>
-        <p>When I'm not pushing pixels or commits, I'm probably out shooting film photography or hunting for the best espresso in the city.</p>
-      </div>
-      <div class="about-facts">
-        <div class="fact">
-          <span class="fact-num">8+</span>
-          <span class="fact-label">Years experience</span>
-        </div>
-        <div class="fact">
-          <span class="fact-num">47</span>
-          <span class="fact-label">Projects shipped</span>
-        </div>
-        <div class="fact">
-          <span class="fact-num">12</span>
-          <span class="fact-label">Design awards</span>
-        </div>
-        <div class="fact">
-          <span class="fact-num">∞</span>
-          <span class="fact-label">Cups of coffee</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="about-specimen" id="aboutSpecimen">
-      <div class="specimen-stage" id="specimenStage">
+  <section class="about-scene" id="about" aria-labelledby="aboutTitle">
+    <div class="about-pin" id="aboutPin">
+      <div class="about-specimen" id="specimenStage">
         <canvas id="specimenCanvas" aria-label="Interactive 3D CT scan of a Japanese gecko. Drag to inspect.">
           A 3D scan of Gekko japonicus.
         </canvas>
 
+        <div class="about-grid-overlay" aria-hidden="true"></div>
+        <div class="about-glow" aria-hidden="true"></div>
+        <div class="about-scrim" aria-hidden="true"></div>
+
         <div class="specimen-hud specimen-hud-top">
           <span class="specimen-tag"><span class="specimen-pulse"></span>Specimen 001 — Gekko japonicus</span>
           <span class="specimen-meta">CT scan / real-time</span>
+        </div>
+
+        <div class="about-overlay">
+          <article class="about-beat about-beat-intro is-active" data-about-beat="0">
+            <p class="about-kicker"><span class="about-kicker-num">01</span><span>About</span><span class="about-kicker-rule" aria-hidden="true"></span></p>
+            <h2 class="about-title" id="aboutTitle">The space<br><em>between.</em></h2>
+            <p class="about-lead" id="aboutLead">I've spent the last 8 years at the intersection of design and code — where most people see a handoff, I see a conversation.</p>
+          </article>
+
+          <article class="about-beat about-beat-practice" data-about-beat="1">
+            <p class="about-kicker"><span class="about-kicker-num">↳</span><span>Practice</span><span class="about-kicker-rule" aria-hidden="true"></span></p>
+            <p class="about-body" id="aboutBody">My work lives in the space between what something looks like and how it actually works. I believe good design is invisible until it's missing, and great engineering is the same.</p>
+            <p class="about-note">When I'm not pushing pixels or commits, I'm probably out shooting film photography or hunting for the best espresso in the city.</p>
+            <div class="about-facts">
+              <div class="fact">
+                <span class="fact-num">8+</span>
+                <span class="fact-label">Years experience</span>
+              </div>
+              <div class="fact">
+                <span class="fact-num">47</span>
+                <span class="fact-label">Projects shipped</span>
+              </div>
+              <div class="fact">
+                <span class="fact-num">12</span>
+                <span class="fact-label">Design awards</span>
+              </div>
+              <div class="fact">
+                <span class="fact-num">∞</span>
+                <span class="fact-label">Cups of coffee</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="about-rail" aria-hidden="true">
+          <span class="about-rail-seg"><span class="about-rail-fill" data-rail="0"></span></span>
+          <span class="about-rail-seg"><span class="about-rail-fill" data-rail="1"></span></span>
         </div>
 
         <div class="specimen-hud specimen-hud-bottom">
