@@ -1046,7 +1046,7 @@ a {
 /* ---------- About: pinned specimen scene ---------- */
 .about-scene {
   position: relative;
-  height: 240vh;
+  height: 360vh;
   background: var(--bg);
 }
 
@@ -1184,6 +1184,36 @@ a {
   text-shadow: 0 0 44px rgba(0, 240, 255, 0.22);
 }
 
+.about-subtitle {
+  margin-bottom: 1.3rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.4vw, 3.5rem);
+  font-weight: 300;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.9s var(--ease-smooth) 0.08s,
+    transform 0.9s var(--ease-smooth) 0.08s;
+}
+
+.about-subtitle em {
+  font-style: normal;
+  color: var(--accent);
+  text-shadow: 0 0 34px rgba(0, 240, 255, 0.2);
+}
+
+.about-beat.is-active .about-subtitle {
+  opacity: 1;
+  transform: none;
+}
+
+.about-beat-notes {
+  width: min(680px, 50vw);
+}
+
 .about-char {
   display: inline-block;
   opacity: 0;
@@ -1298,6 +1328,55 @@ a {
 
 .about-facts .fact:hover .fact-num {
   color: var(--accent);
+}
+
+.about-fieldnotes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 2rem;
+  margin-top: 1.55rem;
+  border-top: 1px solid var(--line);
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.9s var(--ease-smooth) 0.22s,
+    transform 0.9s var(--ease-smooth) 0.22s;
+}
+
+.about-beat.is-active .about-fieldnotes {
+  opacity: 1;
+  transform: none;
+}
+
+.fieldnote {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.55rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.fieldnote-num {
+  padding-top: 0.18rem;
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+}
+
+.fieldnote-title {
+  display: block;
+  margin-bottom: 0.16rem;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.fieldnote p {
+  font-size: 0.79rem;
+  line-height: 1.55;
+  color: var(--ink-light);
 }
 
 .about-rail {
@@ -2401,7 +2480,7 @@ a {
   }
 
   .about-scene {
-    height: 210vh;
+    height: 310vh;
   }
 
   .about-specimen {
@@ -2452,6 +2531,36 @@ a {
     margin-bottom: 1.25rem;
     font-size: clamp(2.55rem, 11.4vw, 3.6rem);
     line-height: 0.96;
+  }
+
+  .about-subtitle {
+    margin-bottom: 0.95rem;
+    font-size: clamp(1.9rem, 8vw, 2.65rem);
+  }
+
+  .about-beat-notes {
+    width: auto;
+  }
+
+  .about-fieldnotes {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1rem;
+    margin-top: 1.15rem;
+  }
+
+  .fieldnote {
+    grid-template-columns: 1.35rem minmax(0, 1fr);
+    gap: 0.35rem;
+    padding: 0.62rem 0;
+  }
+
+  .fieldnote-title {
+    font-size: 0.9rem;
+  }
+
+  .fieldnote p {
+    font-size: 0.72rem;
+    line-height: 1.5;
   }
 
   .about-lead {
@@ -2663,6 +2772,39 @@ a {
   }
 }
 
+@media (max-width: 380px) {
+  .about-beat {
+    bottom: 6.5%;
+  }
+
+  .about-subtitle {
+    margin-bottom: 0.8rem;
+    font-size: 2.05rem;
+  }
+
+  .about-body {
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+
+  .about-fieldnotes {
+    margin-top: 0.9rem;
+  }
+
+  .fieldnote {
+    padding: 0.5rem 0;
+  }
+
+  .fieldnote-title {
+    font-size: 0.84rem;
+  }
+
+  .fieldnote p {
+    font-size: 0.67rem;
+    line-height: 1.44;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -2698,7 +2840,9 @@ a {
   .about-lead,
   .about-body,
   .about-note,
-  .about-facts {
+  .about-facts,
+  .about-subtitle,
+  .about-fieldnotes {
     transition: none !important;
   }
 

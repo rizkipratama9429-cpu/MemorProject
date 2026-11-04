@@ -254,16 +254,53 @@ if (stage && canvas) {
 
   let modelRadius = 1.8;
   let cameraRadius = 5.5;
-  let travelStart = 0;
-  let travelEnd = 0;
-  let baseAzimuth = -0.72;
-  let baseElevation = 0.66;
   let baseYaw = 0;
   let baseOffsetY = 0;
+  let viewportNarrow = false;
+  let viewportTight = false;
   let modelReady = false;
+
+  // Three camera keys: open, mid, close. Each shifts the viewing side and
+  // height; x is a screen-space fraction rather than a world coordinate.
+  const CAMERA_KEYS = [
+    { at: 0, azimuth: -0.72, elevation: 0.66, distance: 1, lookY: -0.18, x: 0.58 },
+    { at: 0.5, azimuth: -0.28, elevation: 0.4, distance: 0.94, lookY: -0.22, x: 0.62 },
+    { at: 1, azimuth: 0.26, elevation: 0.24, distance: 0.88, lookY: -0.26, x: 0.64 },
+  ];
+  const CAMERA_KEYS_NARROW = [
+    { at: 0, azimuth: -0.72, elevation: 0.78, distance: 1, lookY: -0.7, x: 0.5 },
+    { at: 0.5, azimuth: -0.52, elevation: 0.66, distance: 0.96, lookY: -0.72, x: 0.53 },
+    { at: 1, azimuth: -0.94, elevation: 0.54, distance: 0.92, lookY: -0.74, x: 0.56 },
+  ];
+  const camState = { azimuth: 0, elevation: 0, distance: 1, lookY: 0, x: 0.5 };
 
   const lookAt = new THREE.Vector3(0, -0.18, 0);
   const cameraTarget = new THREE.Vector3();
+
+  function sampleCamera(progress) {
+    const keys = viewportNarrow ? CAMERA_KEYS_NARROW : CAMERA_KEYS;
+    let index = 0;
+    while (index < keys.length - 2 && progress > keys[index + 1].at) index += 1;
+
+    const from = keys[index];
+    const to = keys[index + 1];
+    const span = Math.max(0.0001, to.at - from.at);
+    const t = clamp((progress - from.at) / span, 0, 1);
+    const eased = t * t * (3 - 2 * t);
+
+    camState.azimuth = THREE.MathUtils.lerp(from.azimuth, to.azimuth, eased);
+    camState.elevation = THREE.MathUtils.lerp(from.elevation, to.elevation, eased);
+    camState.distance = THREE.MathUtils.lerp(from.distance, to.distance, eased);
+    camState.lookY = THREE.MathUtils.lerp(from.lookY, to.lookY, eased);
+    // Narrow landscape has less horizontal room once the specimen is lifted
+    // above the copy, so center it instead of pushing it to the right edge.
+    camState.x = clamp(
+      THREE.MathUtils.lerp(from.x, to.x, eased) - (viewportTight ? 0.09 : 0),
+      0.35,
+      0.8
+    );
+    return camState;
+  }
 
   function setLoadProgress(percent) {
     const value = clamp(Math.round(percent), 0, 100);
@@ -286,6 +323,7 @@ if (stage && canvas) {
     if (!width || !height) return;
 
     const narrow = width <= 768;
+    const tightLandscape = !narrow && width / height < 1.5;
     const verticalHalf = THREE.MathUtils.degToRad(camera.fov / 2);
     const horizontalHalf = Math.atan(Math.tan(verticalHalf) * (width / height));
     const horizontalFit = (modelRadius * (narrow ? 1.18 : 1.1)) / Math.sin(horizontalHalf);
@@ -297,32 +335,17 @@ if (stage && canvas) {
       horizontalFit * (narrow ? 0.88 : 1)
     );
 
-    // Keep the camera off the x axis so the scroll drift stays horizontal on
-    // screen. On phones the specimen itself is turned upright instead, because
-    // a vertical silhouette reads better in a portrait viewport.
-    baseAzimuth = -0.72;
-    baseElevation = narrow ? 0.78 : 0.66;
+    // On phones the specimen itself is turned upright, because a vertical
+    // silhouette reads better in a portrait viewport; the camera only makes
+    // small height and side adjustments.
+    viewportNarrow = narrow;
+    viewportTight = tightLandscape;
     baseYaw = narrow ? -5.34 : 0;
 
-    // Hold the specimen above the copy on portrait screens; the practice beat
-    // is tall enough to need the whole lower half. Lift the whole orbit rather
-    // than tilting the camera, so the scan keeps its established silhouette.
-    // Scaled with camera distance so the lift holds on tablets as well as phones.
-    baseOffsetY = narrow ? cameraRadius * 0.13 : 0;
-    lookAt.set(0, narrow ? -0.7 : -0.18, 0);
-
-    cameraTarget.set(
-      Math.sin(baseAzimuth) * Math.cos(baseElevation) * cameraRadius,
-      Math.sin(baseElevation) * cameraRadius,
-      Math.cos(baseAzimuth) * Math.cos(baseElevation) * cameraRadius
-    );
-
-    // Horizontal drift, measured against the visible plane at the model.
-    const halfWidth = cameraRadius * Math.tan(verticalHalf) * (width / height);
-    const startFraction = narrow ? 0.38 : 0.54;
-    const endFraction = narrow ? 0.64 : 0.74;
-    travelStart = (startFraction * 2 - 1) * halfWidth;
-    travelEnd = (endFraction * 2 - 1) * halfWidth;
+    // Hold the specimen above the copy when the viewport is portrait or a
+    // narrow landscape. Lift the whole orbit rather than tilting the camera,
+    // so the scan keeps its silhouette. Scaled with camera distance.
+    baseOffsetY = narrow ? cameraRadius * 0.13 : tightLandscape ? cameraRadius * 0.14 : 0;
   }
 
   function buildModel(gltf) {
@@ -539,10 +562,10 @@ if (stage && canvas) {
 
   function updateRail(progress) {
     if (!railFills.length) return;
-    const first = clamp(progress / 0.52, 0, 1);
-    const second = clamp((progress - 0.52) / 0.48, 0, 1);
-    railFills[0].style.height = `${(first * 100).toFixed(1)}%`;
-    railFills[1].style.height = `${(second * 100).toFixed(1)}%`;
+    railFills.forEach((fill, index) => {
+      const segment = clamp(progress * railFills.length - index, 0, 1);
+      fill.style.height = `${(segment * 100).toFixed(1)}%`;
+    });
   }
 
   function animate(now) {
@@ -562,28 +585,41 @@ if (stage && canvas) {
     dragYaw += (targetDragYaw - dragYaw) * 0.09;
     dragPitch += (targetDragPitch - dragPitch) * 0.09;
 
-    // Only x travel: the statue drifts right across the pinned scene.
-    const travelT = reduceMotion.matches ? 1 : sceneProgress;
-    const easedT = travelT * travelT * (3 - 2 * travelT);
-    const travelX = THREE.MathUtils.lerp(travelStart, travelEnd, easedT);
-    orbit.position.x = travelX;
+    // The camera walks through a new angle per beat while the specimen keeps
+    // drifting right, so the pinned scene never settles into a still frame.
+    const cam = sampleCamera(reduceMotion.matches ? 0.5 : sceneProgress);
+    const camRadius = cameraRadius * cam.distance;
+
+    cameraTarget.set(
+      Math.sin(cam.azimuth) * Math.cos(cam.elevation) * camRadius,
+      Math.sin(cam.elevation) * camRadius,
+      Math.cos(cam.azimuth) * Math.cos(cam.elevation) * camRadius
+    );
+    camera.position.lerp(cameraTarget, reduceMotion.matches ? 1 : 0.08);
+    lookAt.set(0, cam.lookY, 0);
+    camera.lookAt(lookAt);
+
+    // Measure x against the visible plane at the model so the screen-space
+    // drift holds steady even as the camera moves closer.
+    const halfWidth =
+      camRadius * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
+    const travelX = (cam.x * 2 - 1) * halfWidth;
+    orbit.position.x += (travelX - orbit.position.x) * (reduceMotion.matches ? 1 : 0.12);
     orbit.position.y = baseOffsetY;
 
     // Keep the forge dust wrapped around the specimen as it travels.
-    if (sparkParticles) sparkParticles.position.set(travelX, baseOffsetY, 0);
+    if (sparkParticles) sparkParticles.position.set(orbit.position.x, baseOffsetY, 0);
 
     if (modelReady) {
       pivot.rotation.y = baseYaw + dragYaw + pointerX * 0.04;
       pivot.rotation.x = dragPitch + pointerY * 0.025;
     }
 
-    camera.position.lerp(cameraTarget, 0.08);
-    camera.lookAt(lookAt);
-
     if (sparkParticles && !reduceMotion.matches) updateSparks(dt);
 
     if (copyShouldShow()) {
-      setActiveBeat(progress < 0.52 ? 0 : 1);
+      const beatIndex = Math.min(beats.length - 1, Math.floor(progress * beats.length));
+      setActiveBeat(beatIndex);
     } else {
       setActiveBeat(-1);
     }
@@ -592,7 +628,7 @@ if (stage && canvas) {
 
     if (now - lastAzimuthUpdate > 120 && azimuthEl) {
       lastAzimuthUpdate = now;
-      const degrees = ((baseAzimuth - baseYaw + dragYaw) * 180) / Math.PI;
+      const degrees = ((cam.azimuth - baseYaw + dragYaw) * 180) / Math.PI;
       azimuthEl.textContent = `AZ ${String(Math.abs(Math.round(degrees)) % 360).padStart(3, "0")}°`;
     }
 
