@@ -1379,35 +1379,6 @@ a {
   color: var(--ink-light);
 }
 
-.about-rail {
-  position: absolute;
-  top: 50%;
-  right: 1.6rem;
-  z-index: 6;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.about-rail-seg {
-  width: 2px;
-  height: 46px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.14);
-  overflow: hidden;
-}
-
-.about-rail-fill {
-  display: block;
-  width: 100%;
-  height: 0%;
-  border-radius: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.45);
-}
-
 .specimen-hud {
   position: absolute;
   left: 3rem;
@@ -1429,6 +1400,9 @@ a {
 
 .specimen-hud-bottom {
   bottom: 1.7rem;
+  /* The fixed edit control sits over the bottom-right corner; keep the
+     azimuth readout clear of it. */
+  padding-right: 2.75rem;
   opacity: 0;
   transition: opacity 0.8s var(--ease-smooth);
 }
@@ -2615,10 +2589,6 @@ a {
     display: none;
   }
 
-  .about-rail {
-    display: none;
-  }
-
   .skills-grid,
   .writing-grid,
   .testimonials-grid {
@@ -2769,6 +2739,14 @@ a {
 
   .hero-stat dd {
     font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) and (max-height: 720px) {
+  /* On short phones the second paragraph pushes the practice copy up into
+     the specimen. Drop the aside so both keep their own space. */
+  .about-note {
+    display: none;
   }
 }
 

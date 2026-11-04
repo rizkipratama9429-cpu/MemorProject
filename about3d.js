@@ -17,7 +17,6 @@ if (stage && canvas) {
   const loadPct = document.querySelector("#specimenLoadPct");
   const title = document.querySelector("#aboutTitle");
   const beats = Array.from(document.querySelectorAll("[data-about-beat]"));
-  const railFills = Array.from(document.querySelectorAll("[data-rail]"));
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
@@ -260,19 +259,28 @@ if (stage && canvas) {
   let viewportTight = false;
   let modelReady = false;
 
-  // Three camera keys: open, mid, close. Each shifts the viewing side and
-  // height; x is a screen-space fraction rather than a world coordinate.
+  // Three shots, each with a parked frame while its copy is on screen:
+  // a high establishing pass, a near-overhead plate, then a close low flank.
+  // x is a screen-space fraction rather than a world coordinate.
   const CAMERA_KEYS = [
-    { at: 0, azimuth: -0.72, elevation: 0.66, distance: 1, lookY: -0.18, x: 0.58 },
-    { at: 0.5, azimuth: -0.28, elevation: 0.4, distance: 0.94, lookY: -0.22, x: 0.62 },
-    { at: 1, azimuth: 0.26, elevation: 0.24, distance: 0.88, lookY: -0.26, x: 0.64 },
+    { at: 0, azimuth: -0.78, elevation: 0.58, distance: 0.92, lookY: -0.2, x: 0.6 },
+    { at: 0.2, azimuth: -0.72, elevation: 0.54, distance: 0.9, lookY: -0.22, x: 0.61 },
+    { at: 0.36, azimuth: 0.16, elevation: 1.12, distance: 0.88, lookY: -0.3, x: 0.62 },
+    { at: 0.55, azimuth: 0.26, elevation: 1.06, distance: 0.9, lookY: -0.28, x: 0.63 },
+    { at: 0.7, azimuth: 0.86, elevation: 0.12, distance: 0.82, lookY: -0.1, x: 0.65 },
+    { at: 0.9, azimuth: 0.96, elevation: 0.06, distance: 0.78, lookY: -0.06, x: 0.66 },
+    { at: 1, azimuth: 1.02, elevation: 0.08, distance: 0.77, lookY: -0.07, x: 0.67 },
   ];
   const CAMERA_KEYS_NARROW = [
-    { at: 0, azimuth: -0.72, elevation: 0.78, distance: 1, lookY: -0.7, x: 0.5 },
-    { at: 0.5, azimuth: -0.52, elevation: 0.66, distance: 0.96, lookY: -0.72, x: 0.53 },
-    { at: 1, azimuth: -0.94, elevation: 0.54, distance: 0.92, lookY: -0.74, x: 0.56 },
+    { at: 0, azimuth: -0.72, elevation: 0.72, distance: 1, lookY: -0.7, x: 0.5 },
+    { at: 0.2, azimuth: -0.66, elevation: 0.76, distance: 0.98, lookY: -0.72, x: 0.51 },
+    { at: 0.36, azimuth: -0.24, elevation: 1.18, distance: 1.34, lookY: -1, x: 0.52, lift: 0.13 },
+    { at: 0.55, azimuth: -0.2, elevation: 1.1, distance: 1.32, lookY: -0.96, x: 0.53, lift: 0.13 },
+    { at: 0.7, azimuth: -0.92, elevation: 0.5, distance: 0.9, lookY: -0.72, x: 0.55 },
+    { at: 0.9, azimuth: -1, elevation: 0.44, distance: 0.87, lookY: -0.7, x: 0.56 },
+    { at: 1, azimuth: -1.04, elevation: 0.46, distance: 0.86, lookY: -0.71, x: 0.56 },
   ];
-  const camState = { azimuth: 0, elevation: 0, distance: 1, lookY: 0, x: 0.5 };
+  const camState = { azimuth: 0, elevation: 0, distance: 1, lookY: 0, x: 0.5, lift: 0 };
 
   const lookAt = new THREE.Vector3(0, -0.18, 0);
   const cameraTarget = new THREE.Vector3();
@@ -292,6 +300,7 @@ if (stage && canvas) {
     camState.elevation = THREE.MathUtils.lerp(from.elevation, to.elevation, eased);
     camState.distance = THREE.MathUtils.lerp(from.distance, to.distance, eased);
     camState.lookY = THREE.MathUtils.lerp(from.lookY, to.lookY, eased);
+    camState.lift = THREE.MathUtils.lerp(from.lift || 0, to.lift || 0, eased);
     // Narrow landscape has less horizontal room once the specimen is lifted
     // above the copy, so center it instead of pushing it to the right edge.
     camState.x = clamp(
@@ -334,6 +343,11 @@ if (stage && canvas) {
       modelRadius * (narrow ? 2.7 : 3.3),
       horizontalFit * (narrow ? 0.88 : 1)
     );
+
+    // Short phones have no vertical room between the top HUD and the copy, so
+    // pull the whole orbit back instead of letting the scan sit on the text.
+    if (narrow && height < 720) cameraRadius *= 1.32;
+    if (tightLandscape) cameraRadius *= 1.08;
 
     // On phones the specimen itself is turned upright, because a vertical
     // silhouette reads better in a portrait viewport; the camera only makes
@@ -560,14 +574,6 @@ if (stage && canvas) {
     sparkParticles.geometry.attributes.position.needsUpdate = true;
   }
 
-  function updateRail(progress) {
-    if (!railFills.length) return;
-    railFills.forEach((fill, index) => {
-      const segment = clamp(progress * railFills.length - index, 0, 1);
-      fill.style.height = `${(segment * 100).toFixed(1)}%`;
-    });
-  }
-
   function animate(now) {
     requestAnimationFrame(animate);
     if (!inView || document.hidden) return;
@@ -605,10 +611,10 @@ if (stage && canvas) {
       camRadius * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     const travelX = (cam.x * 2 - 1) * halfWidth;
     orbit.position.x += (travelX - orbit.position.x) * (reduceMotion.matches ? 1 : 0.12);
-    orbit.position.y = baseOffsetY;
+    orbit.position.y = baseOffsetY + cam.lift * camRadius;
 
     // Keep the forge dust wrapped around the specimen as it travels.
-    if (sparkParticles) sparkParticles.position.set(orbit.position.x, baseOffsetY, 0);
+    if (sparkParticles) sparkParticles.position.set(orbit.position.x, orbit.position.y, 0);
 
     if (modelReady) {
       pivot.rotation.y = baseYaw + dragYaw + pointerX * 0.04;
@@ -623,8 +629,6 @@ if (stage && canvas) {
     } else {
       setActiveBeat(-1);
     }
-
-    updateRail(sceneProgress);
 
     if (now - lastAzimuthUpdate > 120 && azimuthEl) {
       lastAzimuthUpdate = now;
