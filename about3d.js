@@ -505,19 +505,26 @@ if (stage && canvas) {
   resize();
   new ResizeObserver(resize).observe(stage);
 
-  let inView = false;
-  new IntersectionObserver(
-    ([entry]) => {
-      inView = entry.isIntersecting;
-    },
-    { rootMargin: "240px 0px" }
-  ).observe(stage);
-
   // ---------- Scroll timeline ----------
   const clock = new THREE.Clock();
   let sceneProgress = 0;
   let previousProgress = 0;
   let activeBeat = -1;
+
+  // A hard flick can move the raw scroll position across a whole beat in one
+  // frame. Cap the playhead's travel speed so the camera move and copy reveal
+  // still run instead of snapping to their end state.
+  const MAX_TIMELINE_RATE = 0.28; // timeline fraction per second
+  const TIMELINE_EASE = 7;
+
+  function advanceTimeline(target, dt) {
+    const delta = target - sceneProgress;
+    if (Math.abs(delta) < 0.0005) return target;
+
+    const easedStep = delta * (1 - Math.exp(-TIMELINE_EASE * dt));
+    const maxStep = MAX_TIMELINE_RATE * dt;
+    return sceneProgress + clamp(easedStep, -maxStep, maxStep);
+  }
 
   function readProgress() {
     if (!sceneSection || !pin) return 0;
@@ -539,6 +546,20 @@ if (stage && canvas) {
     activeBeat = index;
     beats.forEach((el, i) => el.classList.toggle("is-active", i === index));
   }
+
+  let inView = false;
+  new IntersectionObserver(
+    ([entry]) => {
+      inView = entry.isIntersecting;
+      // Once the scene is fully out of view, park the playhead on the nearest
+      // end so re-entering from the other side never rewinds stale beats.
+      if (inView || !sceneSection) return;
+      const rect = sceneSection.getBoundingClientRect();
+      if (rect.bottom <= 0) sceneProgress = 1;
+      else if (rect.top >= window.innerHeight) sceneProgress = 0;
+    },
+    { rootMargin: "240px 0px" }
+  ).observe(stage);
 
   function updateSparks(dt) {
     if (!sparkParticles) return;
@@ -578,18 +599,24 @@ if (stage && canvas) {
     requestAnimationFrame(animate);
     if (!inView || document.hidden) return;
 
-    const dt = Math.min(clock.getDelta(), 1 / 30);
+    const frameDelta = clock.getDelta();
+    const dt = Math.min(frameDelta, 1 / 30);
     const progress = readProgress();
 
     previousProgress = sceneProgress;
-    const smoothing = reduceMotion.matches ? 1 : 0.055;
-    sceneProgress += (progress - sceneProgress) * smoothing;
+    // Use the real frame time so the cap stays fixed even when the 3D view
+    // runs below 30 fps; only a tab-switch gap is allowed to be swallowed.
+    sceneProgress = reduceMotion.matches
+      ? progress
+      : advanceTimeline(progress, Math.min(frameDelta, 0.1));
 
-    pointerX += (targetPointerX - pointerX) * 0.05;
-    pointerY += (targetPointerY - pointerY) * 0.05;
+    const pointerEase = 1 - Math.exp(-3 * dt);
+    pointerX += (targetPointerX - pointerX) * pointerEase;
+    pointerY += (targetPointerY - pointerY) * pointerEase;
 
-    dragYaw += (targetDragYaw - dragYaw) * 0.09;
-    dragPitch += (targetDragPitch - dragPitch) * 0.09;
+    const dragEase = 1 - Math.exp(-5.4 * dt);
+    dragYaw += (targetDragYaw - dragYaw) * dragEase;
+    dragPitch += (targetDragPitch - dragPitch) * dragEase;
 
     // The camera walks through a new angle per beat while the specimen keeps
     // drifting right, so the pinned scene never settles into a still frame.
@@ -601,7 +628,7 @@ if (stage && canvas) {
       Math.sin(cam.elevation) * camRadius,
       Math.cos(cam.azimuth) * Math.cos(cam.elevation) * camRadius
     );
-    camera.position.lerp(cameraTarget, reduceMotion.matches ? 1 : 0.08);
+    camera.position.lerp(cameraTarget, reduceMotion.matches ? 1 : 1 - Math.exp(-5 * dt));
     lookAt.set(0, cam.lookY, 0);
     camera.lookAt(lookAt);
 
@@ -610,7 +637,8 @@ if (stage && canvas) {
     const halfWidth =
       camRadius * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     const travelX = (cam.x * 2 - 1) * halfWidth;
-    orbit.position.x += (travelX - orbit.position.x) * (reduceMotion.matches ? 1 : 0.12);
+    orbit.position.x +=
+      (travelX - orbit.position.x) * (reduceMotion.matches ? 1 : 1 - Math.exp(-7.7 * dt));
     orbit.position.y = baseOffsetY + cam.lift * camRadius;
 
     // Keep the forge dust wrapped around the specimen as it travels.
@@ -624,7 +652,9 @@ if (stage && canvas) {
     if (sparkParticles && !reduceMotion.matches) updateSparks(dt);
 
     if (copyShouldShow()) {
-      const beatIndex = Math.min(beats.length - 1, Math.floor(progress * beats.length));
+      // Follow the limited playhead, not the raw scroll, so each beat gets its
+      // full reveal even when the wheel was flicked hard.
+      const beatIndex = Math.min(beats.length - 1, Math.floor(sceneProgress * beats.length));
       setActiveBeat(beatIndex);
     } else {
       setActiveBeat(-1);

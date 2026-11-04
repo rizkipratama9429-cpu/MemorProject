@@ -12,6 +12,8 @@ const grid = document.querySelector(".page-bg-grid");
 const gecko = document.querySelector(".hero-gecko");
 const hero = document.querySelector(".hero");
 const wordmark = document.querySelector(".footer-wordmark span");
+const aboutSection = document.querySelector("#about");
+const aboutPin = document.querySelector("#aboutPin");
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -224,13 +226,159 @@ if (!reduceMotion.matches) {
 
   const lenis = new Lenis({ smoothWheel: true });
 
+  // ---------- About scroll governor ----------
+  // The pinned specimen is a three-shot story. A hard flick can cross the
+  // whole section in a handful of frames, so downward wheel input inside the
+  // pin is collected and released at a fixed speed. The animation gets its
+  // full run and the page still reaches the end of the section.
+  const ABOUT_PLAY_SECONDS = 3.8;
+  const GOVERNOR_LINE_HEIGHT = 100 / 6;
+  const governor = { active: false, position: 0, target: 0 };
+  let programmaticScroll = false;
+  let savedScrollBehavior = "";
+
+  function aboutBounds() {
+    if (!aboutSection || !aboutPin) return null;
+    const start = aboutSection.offsetTop;
+    const end = start + Math.max(1, aboutSection.offsetHeight - aboutPin.offsetHeight);
+    return { start, end };
+  }
+
+  function syncScroll(position) {
+    // immediate also resets Lenis's own target, so it cannot keep adding
+    // speed behind the governor.
+    lenis.scrollTo(position, { immediate: true });
+  }
+
+  function startGovernor(target) {
+    const bounds = aboutBounds();
+    if (!bounds) return;
+
+    if (!governor.active) {
+      // The page normally uses CSS smooth scrolling for anchors. While the
+      // governor writes a new position each frame that would restart the
+      // smooth animation every tick, so pin the scroller to instant.
+      savedScrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = "auto";
+    }
+
+    governor.active = true;
+    governor.position = window.scrollY;
+    governor.target = clamp(target, governor.position, bounds.end);
+    syncScroll(governor.position);
+  }
+
+  function stopGovernor() {
+    if (!governor.active) return;
+    governor.active = false;
+    document.documentElement.style.scrollBehavior = savedScrollBehavior;
+    savedScrollBehavior = "";
+  }
+
+  function stepGovernor(dt) {
+    if (!governor.active) return;
+
+    const bounds = aboutBounds();
+    if (!bounds) return stopGovernor();
+
+    if (window.scrollY < bounds.start - window.innerHeight * 2 || window.scrollY > bounds.end + 4) {
+      return stopGovernor();
+    }
+
+    // A scrollbar or keyboard jump is explicit; hand control back rather than
+    // pulling the page toward a stale wheel target.
+    if (Math.abs(window.scrollY - governor.position) > 2) return stopGovernor();
+
+    const remaining = governor.target - governor.position;
+    if (remaining > 0.5) {
+      const storySpeed = (bounds.end - bounds.start) / ABOUT_PLAY_SECONDS;
+      // Approach the pin at normal flick speed, then drop to the story pace
+      // once the scene is locked. Otherwise the hero crawl feels sluggish.
+      const speed = governor.position < bounds.start ? 2800 : storySpeed;
+      governor.position = Math.min(governor.target, governor.position + speed * dt);
+      syncScroll(governor.position);
+    }
+
+    if (governor.position >= bounds.end - 0.5) stopGovernor();
+  }
+
+  // A flick can start above the section and already be travelling when the
+  // pin locks. Catch that in-flight target, park it on the section, and play
+  // the scene instead of letting Lenis carry the jump straight past it.
+  function takeOverFlick() {
+    if (governor.active || programmaticScroll) return;
+
+    const bounds = aboutBounds();
+    if (!bounds) return;
+
+    const y = lenis.scroll;
+    if (y < bounds.start - window.innerHeight * 0.75 || y >= bounds.end - 1) return;
+
+    const target = lenis.targetScroll;
+    if (target - y < 320) return;
+
+    startGovernor(target);
+  }
+
+  window.addEventListener(
+    "wheel",
+    (event) => {
+      if (event.ctrlKey) return;
+
+      // Panels such as the edit drawer opt out of page scrolling.
+      const path = event.composedPath();
+      if (
+        path.some(
+          (node) =>
+            node instanceof HTMLElement &&
+            (node.hasAttribute("data-lenis-prevent") ||
+              node.hasAttribute("data-lenis-prevent-wheel"))
+        )
+      ) {
+        return;
+      }
+
+      programmaticScroll = false;
+
+      const bounds = aboutBounds();
+      if (!bounds) return;
+
+      let delta = event.deltaY;
+      if (event.deltaMode === 1) delta *= GOVERNOR_LINE_HEIGHT;
+      else if (event.deltaMode === 2) delta *= window.innerHeight;
+      if (!delta) return;
+
+      // Upward input always hands control back so the section cannot trap.
+      if (delta < 0) {
+        stopGovernor();
+        return;
+      }
+
+      // Let normal hero scrolling stay with Lenis. Take over only when this
+      // input (plus anything already queued) is about to reach the pin.
+      const nextTarget = Math.max(lenis.targetScroll, window.scrollY) + delta;
+      if (window.scrollY < bounds.start - 4 && nextTarget < bounds.start) return;
+      if (window.scrollY >= bounds.end - 1) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (!governor.active) startGovernor(nextTarget);
+      else governor.target = Math.min(bounds.end, governor.target + delta);
+    },
+    { passive: false, capture: true }
+  );
+
   let lastTime = 0;
 
   function frame(time) {
-    const dt = Math.min((time - lastTime) / 1000 || 0, 1 / 30);
+    const rawDt = (time - lastTime) / 1000 || 0;
+    const dt = Math.min(rawDt, 1 / 30);
     lastTime = time;
 
     lenis.raf(time);
+    takeOverFlick();
+    stepGovernor(Math.min(rawDt, 0.1));
     paintIfMoved();
     stepReveals(dt);
 
@@ -256,9 +404,17 @@ if (!reduceMotion.matches) {
 
       event.preventDefault();
       event.stopImmediatePropagation();
+      stopGovernor();
       // About is a full-bleed pinned scene, so it lands flush with the viewport.
       const offset = target.id === "about" ? 0 : -72;
-      lenis.scrollTo(target, { offset, duration: 1.1 });
+      programmaticScroll = true;
+      lenis.scrollTo(target, {
+        offset,
+        duration: 1.1,
+        onComplete: () => {
+          programmaticScroll = false;
+        },
+      });
     },
     true
   );
