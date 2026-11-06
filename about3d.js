@@ -51,22 +51,22 @@ if (stage && canvas) {
     const ctx = envCanvas.getContext("2d");
 
     const base = ctx.createLinearGradient(0, 0, 0, 256);
-    base.addColorStop(0, "#22343d");
-    base.addColorStop(0.45, "#0a141a");
-    base.addColorStop(1, "#010304");
+    base.addColorStop(0, "#27364f");
+    base.addColorStop(0.45, "#0e1729");
+    base.addColorStop(1, "#050912");
     ctx.fillStyle = base;
     ctx.fillRect(0, 0, 512, 256);
 
     const key = ctx.createRadialGradient(360, 62, 0, 360, 62, 130);
     key.addColorStop(0, "rgba(255, 255, 255, 1)");
-    key.addColorStop(0.22, "rgba(255, 238, 214, 0.75)");
+    key.addColorStop(0.22, "rgba(255, 242, 222, 0.75)");
     key.addColorStop(1, "rgba(255, 255, 255, 0)");
     ctx.fillStyle = key;
     ctx.fillRect(0, 0, 512, 256);
 
     const rim = ctx.createRadialGradient(96, 128, 0, 96, 128, 150);
-    rim.addColorStop(0, "rgba(0, 240, 255, 0.8)");
-    rim.addColorStop(1, "rgba(0, 240, 255, 0)");
+    rim.addColorStop(0, "rgba(171, 196, 255, 0.8)");
+    rim.addColorStop(1, "rgba(171, 196, 255, 0)");
     ctx.fillStyle = rim;
     ctx.fillRect(0, 0, 512, 256);
 
@@ -97,7 +97,7 @@ if (stage && canvas) {
   keyLight.shadow.bias = -0.001;
   scene.add(keyLight);
 
-  const rimLight = new THREE.DirectionalLight(0x63e8ff, 4.2);
+  const rimLight = new THREE.DirectionalLight(0xabc4ff, 4.2);
   rimLight.position.set(-5, 3, -4);
   scene.add(rimLight);
 
@@ -105,7 +105,7 @@ if (stage && canvas) {
   fillLight.position.set(-2, -4, 3);
   scene.add(fillLight);
 
-  const underLight = new THREE.PointLight(0x00f0ff, 14, 12, 2);
+  const underLight = new THREE.PointLight(0xabc4ff, 14, 12, 2);
   underLight.position.set(0, -1.8, 2.4);
   scene.add(underLight);
 

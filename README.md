@@ -1,34 +1,75 @@
 # Vinnyrz — Personal Profile
 
-A modern, futuristic personal profile website built with vanilla HTML, CSS, and JavaScript.
+A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. No build step, no framework, no server code.
 
 ## Features
 
-- Single dark theme, no toggle
-- Custom cursor with hover effects
+- 60/30/10 pastel-blue palette with ink-led contrast
+- Archivo display/body, Instrument Serif italic emphasis, JetBrains Mono labels
+- Custom cursor with hover states
 - Scroll progress bar
 - Magnetic buttons
+- Pinned About scene with a real-time 3D gecko specimen
 - Editable content (localStorage)
 - Footer with editable contact details and local time
 - Contact form
 - Fully responsive
 - SEO optimized
 
+## Design System
+
+| Role | Token | Value |
+| --- | --- | --- |
+| Paper (60%) | `--bg` | `#edf2fa` |
+| Support (30%) | `--bg-alt` / `--bg-card` | `#d7e3fc` / `#ccdbfd` tint |
+| Accent (10%) | `--accent` | `#abc4ff` |
+| Hairlines | `--accent-soft` | `#c1d3fe` |
+| Ink | `--ink` | `#101a2e` |
+
+The About scene is the one dark plate (`#0b1322`) so the bronze specimen keeps
+its contrast. It re-declares the color tokens inside `.about-scene`; don't
+change the global ink to fix About copy.
+
+Type: `Archivo` 800/900 for display, `Instrument Serif` italic for emphasis,
+`JetBrains Mono` for labels and micro-copy.
+
 ## Deployment
 
-### Vercel (Recommended)
+### nginx (static VM)
+
+Serve the folder directly; there is no build step.
+
+```nginx
+server {
+    listen 80;
+    server_name web.domainvinnyrz.my.id;
+    root /var/www/vinnyrz;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+Then issue TLS with certbot:
+
+```sh
+sudo certbot --nginx -d web.domainvinnyrz.my.id
+```
+
+Do not add a `/index.html` fallback to `try_files`; it causes a rewrite cycle.
+
+### Vercel
+
 1. Push this folder to GitHub
 2. Go to [vercel.com](https://vercel.com) → Import Project
 3. Select your repo → Deploy
 
 ### Netlify
+
 1. Go to [netlify.com](https://netlify.com) → Add new site → Deploy manually
 2. Drag and drop this folder
-
-### Custom Domain
-1. Buy a domain (Namecheap, Cloudflare, etc.)
-2. In Vercel/Netlify: Project Settings → Domains → Add your domain
-3. Update DNS records as instructed
 
 ## Connecting the Contact Form
 
@@ -40,14 +81,17 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 ## Adding Analytics
 
 ### Plausible (Privacy-friendly)
+
 1. Go to [plausible.io](https://plausible.io) → Add a new site
 2. Copy the data-domain value
 3. Add this before `</head>` in `index.html`:
+
 ```html
 <script defer data-domain="vinnyrz.com" src="https://plausible.io/js/script.js"></script>
 ```
 
 ### Google Analytics
+
 1. Go to [analytics.google.com](https://analytics.google.com) → Create a property
 2. Copy your Measurement ID (G-XXXXXXXXXX)
 3. Add the GA script before `</head>` in `index.html`
@@ -57,8 +101,9 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 1. Add project screenshots to the project folder
 2. In `index.html`, find each `.thumb-placeholder`
 3. Replace with:
+
 ```html
-<img src="fieldnotes.jpg" alt="Fieldnotes" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px;">
+<img src="fieldnotes.jpg" alt="Fieldnotes" style="width: 120px; height: 80px; object-fit: cover; border: 1px solid #101a2e;">
 ```
 
 ## File Structure
@@ -66,7 +111,10 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 ```
 ├── index.html          # Main page
 ├── styles.css          # All styles
-├── script.js           # All interactions
+├── script.js           # Edit panel, cursor, nav, form
+├── motion.js           # Lenis, reveals, About scroll governor
+├── about3d.js          # Three.js gecko specimen
+├── assets/             # Model and texture assets
 ├── vercel.json         # Vercel deployment config
 ├── netlify.toml        # Netlify deployment config
 ├── robots.txt          # SEO robots file
@@ -78,8 +126,9 @@ A modern, futuristic personal profile website built with vanilla HTML, CSS, and 
 
 - **HTML5** — Semantic markup
 - **CSS3** — Custom properties, Grid, Flexbox, animations
-- **Vanilla JS** — No frameworks, no dependencies
-- **Fonts** — Space Grotesk, Inter, JetBrains Mono (Google Fonts)
+- **Vanilla JS** — Edit panel and interactions
+- **Lenis / Three.js** — Smooth scroll and the 3D specimen, loaded as ES modules
+- **Fonts** — Archivo, Instrument Serif, JetBrains Mono (Google Fonts)
 
 ## License
 

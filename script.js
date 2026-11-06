@@ -344,7 +344,7 @@
       // Simulate form submission (replace with actual endpoint)
       setTimeout(() => {
         submitBtn.innerHTML = '<span>Message Sent ✓</span>';
-        submitBtn.style.background = '#00FF88';
+        submitBtn.style.background = 'var(--accent)';
 
         setTimeout(() => {
           contactForm.reset();
@@ -365,8 +365,8 @@
   // ---------- Console easter egg ----------
   console.log(
     '%cHey there! 👋\n%cLike what you see? Let\'s work together.\nHello People\'s',
-    'font-size: 1.2rem; font-weight: bold; color: #00F0FF;',
-    'font-size: 0.9rem; color: #8A8782;'
+    'font-size: 1.2rem; font-weight: bold; color: #101a2e; background: #abc4ff; padding: 2px 6px;',
+    'font-size: 0.9rem; color: #4c5a76;'
   );
 
 })();
