@@ -30,6 +30,12 @@ The About scene is the one dark plate (`#0b1322`) so the bronze specimen keeps
 its contrast. It re-declares the color tokens inside `.about-scene`; don't
 change the global ink to fix About copy.
 
+The copy layer is camera-linked: `about3d.js` projects sampled specimen
+vertices, drifts `.about-overlay` on `--copy-x` / `--copy-y`, and caps a
+screen-space safe-area push so the text always clears the bronze. Don't pin the
+copy back to a fixed `translate` or remove the safe-area test when changing the
+camera keys.
+
 Type: `Archivo` 800/900 for display, `Instrument Serif` italic for emphasis,
 `JetBrains Mono` for labels and micro-copy.
 

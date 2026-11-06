@@ -1210,22 +1210,39 @@ a {
   inset: 0;
   z-index: 4;
   pointer-events: none;
+  --copy-x: 0px;
+  --copy-y: 0px;
 }
 
 .about-beat {
   position: absolute;
   left: 3rem;
   bottom: 11%;
-  width: min(640px, 47vw);
+  width: min(600px, 43vw);
   opacity: 0;
-  transform: translate3d(0, 34px, 0);
+  transform: translate3d(var(--beat-enter-x, 0px), calc(34px + var(--beat-enter-y, 0px)), 0);
+  translate: var(--copy-x) var(--copy-y);
   transition: opacity 0.85s var(--ease-smooth), transform 0.85s var(--ease-smooth);
-  will-change: opacity, transform;
+  will-change: opacity, transform, translate;
+}
+
+.about-beat[data-about-beat="0"] {
+  --beat-enter-x: -14px;
+}
+
+.about-beat[data-about-beat="1"] {
+  --beat-enter-x: 26px;
+  --beat-enter-y: 8px;
+}
+
+.about-beat[data-about-beat="2"] {
+  --beat-enter-x: -22px;
+  --beat-enter-y: 10px;
 }
 
 .about-beat.is-active {
   opacity: 1;
-  transform: none;
+  transform: translate3d(0, 0, 0);
 }
 
 .about-kicker {
@@ -1302,7 +1319,7 @@ a {
 }
 
 .about-beat-notes {
-  width: min(680px, 50vw);
+  width: min(640px, 45vw);
 }
 
 .about-char {

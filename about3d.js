@@ -16,6 +16,7 @@ if (stage && canvas) {
   const loadFill = document.querySelector("#specimenLoadFill");
   const loadPct = document.querySelector("#specimenLoadPct");
   const title = document.querySelector("#aboutTitle");
+  const overlay = document.querySelector(".about-overlay");
   const beats = Array.from(document.querySelectorAll("[data-about-beat]"));
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -259,6 +260,16 @@ if (stage && canvas) {
   let viewportTight = false;
   let modelReady = false;
 
+  let specimenModel = null;
+  let specimenBounds = null;
+  let specimenPoints = null;
+  let specimenPointCount = 0;
+  let projectedXs = null;
+  let projectedYs = null;
+  const projectionPoint = new THREE.Vector3();
+  const modelCenterWorld = new THREE.Vector3();
+  const cameraRight = new THREE.Vector3();
+
   // Three shots, each with a parked frame while its copy is on screen:
   // a high establishing pass, a near-overhead plate, then a close low flank.
   // x is a screen-space fraction rather than a world coordinate.
@@ -362,6 +373,176 @@ if (stage && canvas) {
     baseOffsetY = narrow ? cameraRadius * 0.13 : tightLandscape ? cameraRadius * 0.14 : 0;
   }
 
+  // ---------- Copy placement ----------
+  // The camera swings from the left flank to a low right-side pass. Project
+  // the specimen every frame so the copy can answer that movement and the
+  // model can be nudged out of the text's safe area.
+
+  function projectSpecimen() {
+    if (!specimenModel || !specimenBounds) return null;
+
+    specimenModel.updateWorldMatrix(true, false);
+    camera.updateMatrixWorld();
+
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    let left = Infinity;
+    let right = -Infinity;
+    let top = Infinity;
+    let bottom = -Infinity;
+
+    if (specimenPointCount) {
+      for (let i = 0; i < specimenPointCount; i += 1) {
+        const index = i * 3;
+        projectionPoint
+          .set(specimenPoints[index], specimenPoints[index + 1], specimenPoints[index + 2])
+          .applyMatrix4(pivot.matrixWorld)
+          .project(camera);
+
+        const x = (projectionPoint.x * 0.5 + 0.5) * width;
+        const y = (-projectionPoint.y * 0.5 + 0.5) * height;
+        projectedXs[i] = x;
+        projectedYs[i] = y;
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+    } else {
+      const { min, max } = specimenBounds;
+      for (let index = 0; index < 8; index += 1) {
+        projectionPoint
+          .set(
+            index & 1 ? max.x : min.x,
+            index & 2 ? max.y : min.y,
+            index & 4 ? max.z : min.z
+          )
+          .applyMatrix4(pivot.matrixWorld)
+          .project(camera);
+
+        const x = (projectionPoint.x * 0.5 + 0.5) * width;
+        const y = (-projectionPoint.y * 0.5 + 0.5) * height;
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+    }
+
+    return {
+      left,
+      right,
+      top,
+      bottom,
+      cx: (left + right) / 2,
+      cy: (top + bottom) / 2,
+    };
+  }
+
+  let copyX = 0;
+  let copyY = 0;
+  let safeOffset = 0;
+
+  function updateCopyLayer(bounds, dt) {
+    if (!overlay) return;
+
+    const active = activeBeat >= 0 ? beats[activeBeat] : null;
+    let targetX = 0;
+    let targetY = 0;
+
+    if (active && bounds && !viewportNarrow) {
+      const width = stage.clientWidth;
+      const height = stage.clientHeight;
+      const margin = 18;
+
+      // Text sits opposite the specimen's screen position, so a camera move
+      // opens space instead of closing it.
+      targetX = clamp((width * 0.64 - bounds.cx) * 0.16, -18, 18);
+      targetY = clamp((height * 0.62 - bounds.bottom) * 0.18, -26, 26);
+
+      const copyLeft = active.offsetLeft;
+      const copyTop = active.offsetTop;
+      const copyRight = copyLeft + active.offsetWidth;
+      const copyBottom = copyTop + active.offsetHeight;
+
+      targetX = clamp(targetX, margin - copyLeft, width - margin - copyRight);
+      targetY = clamp(targetY, 92 - copyTop, height - 58 - copyBottom);
+    }
+
+    if (reduceMotion.matches) {
+      copyX = targetX;
+      copyY = targetY;
+    } else {
+      const ease = 1 - Math.exp(-5.2 * dt);
+      copyX += (targetX - copyX) * ease;
+      copyY += (targetY - copyY) * ease;
+    }
+
+    overlay.style.setProperty("--copy-x", `${copyX.toFixed(2)}px`);
+    overlay.style.setProperty("--copy-y", `${copyY.toFixed(2)}px`);
+  }
+
+  function updateSafeArea(bounds, dt) {
+    let target = 0;
+    fadingTime = Math.max(0, fadingTime - dt);
+
+    if (bounds && activeBeat >= 0 && !viewportNarrow && modelReady) {
+      const visible = [beats[activeBeat]];
+      if (fadingTime > 0 && fadingBeat >= 0 && beats[fadingBeat]) {
+        visible.push(beats[fadingBeat]);
+      }
+
+      const copyRight =
+        Math.max(...visible.map((beat) => beat.offsetLeft + beat.offsetWidth)) + copyX;
+      const copyTop = Math.min(...visible.map((beat) => beat.offsetTop)) + copyY;
+      const copyBottom =
+        Math.max(...visible.map((beat) => beat.offsetTop + beat.offsetHeight)) + copyY;
+
+      // Convert the screen-space intrusion into world units along the
+      // camera's right axis, then park the specimen just outside the copy.
+      camera.updateMatrixWorld();
+      cameraRight.setFromMatrixColumn(camera.matrixWorld, 0);
+      specimenModel.getWorldPosition(modelCenterWorld);
+      const depth = Math.max(0.5, camera.position.distanceTo(modelCenterWorld));
+      const focalPx =
+        stage.clientHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+      const pxPerWorldX = Math.max(0.001, (focalPx * Math.abs(cameraRight.x)) / depth);
+      const maxPushPx = Math.min(180, stage.clientWidth * 0.14);
+      const guide = copyRight + 30;
+
+      if (specimenPointCount) {
+        // Only vertices inside the copy's vertical band matter. Finding the
+        // nearest one keeps the tail on screen instead of pushing the whole
+        // bounding box clear.
+        const bandTop = copyTop - 24;
+        const bandBottom = copyBottom + 24;
+        let clearance = Infinity;
+
+        for (let i = 0; i < specimenPointCount; i += 1) {
+          const y = projectedYs[i];
+          if (y < bandTop || y > bandBottom) continue;
+          clearance = Math.min(clearance, projectedXs[i] - guide);
+        }
+
+        if (clearance !== Infinity) {
+          const currentPushPx = safeOffset * pxPerWorldX;
+          const requiredPushPx = currentPushPx - clearance;
+          target = clamp(requiredPushPx / pxPerWorldX, 0, maxPushPx / pxPerWorldX);
+        }
+      } else {
+        const verticalHit = copyBottom > bounds.top - 24 && copyTop < bounds.bottom + 24;
+
+        if (verticalHit) {
+          const baseLeft = bounds.left - safeOffset * pxPerWorldX;
+          target = clamp((guide - baseLeft) / pxPerWorldX, 0, maxPushPx / pxPerWorldX);
+        }
+      }
+    }
+
+    const ease = reduceMotion.matches ? 1 : 1 - Math.exp(-3.6 * dt);
+    safeOffset += (target - safeOffset) * ease;
+  }
+
   function buildModel(gltf) {
     const model = gltf.scene;
 
@@ -396,6 +577,33 @@ if (stage && canvas) {
 
     const finalBox = new THREE.Box3().setFromObject(model);
     modelRadius = Math.max(1, finalBox.getBoundingSphere(new THREE.Sphere()).radius);
+    specimenModel = model;
+    specimenBounds = finalBox.clone();
+
+    // Sample the surface so the safe-area test reacts to the real silhouette
+    // instead of the empty corners of a rotated box.
+    const cloud = [];
+    let vertexCount = 0;
+    model.traverse((child) => {
+      if (!child.isMesh) return;
+      vertexCount += child.geometry?.attributes?.position?.count || 0;
+    });
+    const sampleStep = Math.max(1, Math.floor(vertexCount / 480));
+    model.updateMatrixWorld(true);
+    model.traverse((child) => {
+      if (!child.isMesh) return;
+      const position = child.geometry?.attributes?.position;
+      if (!position) return;
+      for (let i = 0; i < position.count; i += sampleStep) {
+        projectionPoint.fromBufferAttribute(position, i).applyMatrix4(child.matrixWorld);
+        cloud.push(projectionPoint.x, projectionPoint.y, projectionPoint.z);
+      }
+    });
+    specimenPoints = new Float32Array(cloud);
+    specimenPointCount = cloud.length / 3;
+    projectedXs = new Float32Array(specimenPointCount);
+    projectedYs = new Float32Array(specimenPointCount);
+
     updateCameraFit();
 
     pivot.add(model);
@@ -510,6 +718,8 @@ if (stage && canvas) {
   let sceneProgress = 0;
   let previousProgress = 0;
   let activeBeat = -1;
+  let fadingBeat = -1;
+  let fadingTime = 0;
 
   // A hard flick can move the raw scroll position across a whole beat in one
   // frame. Cap the playhead's travel speed so the camera move and copy reveal
@@ -543,6 +753,10 @@ if (stage && canvas) {
 
   function setActiveBeat(index) {
     if (index === activeBeat) return;
+    if (activeBeat >= 0) {
+      fadingBeat = activeBeat;
+      fadingTime = 0.9;
+    }
     activeBeat = index;
     beats.forEach((el, i) => el.classList.toggle("is-active", i === index));
   }
@@ -610,6 +824,15 @@ if (stage && canvas) {
       ? progress
       : advanceTimeline(progress, Math.min(frameDelta, 0.1));
 
+    if (copyShouldShow()) {
+      // Follow the limited playhead, not the raw scroll, so each beat gets its
+      // full reveal even when the wheel was flicked hard.
+      const beatIndex = Math.min(beats.length - 1, Math.floor(sceneProgress * beats.length));
+      setActiveBeat(beatIndex);
+    } else {
+      setActiveBeat(-1);
+    }
+
     const pointerEase = 1 - Math.exp(-3 * dt);
     pointerX += (targetPointerX - pointerX) * pointerEase;
     pointerY += (targetPointerY - pointerY) * pointerEase;
@@ -638,7 +861,7 @@ if (stage && canvas) {
       camRadius * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     const travelX = (cam.x * 2 - 1) * halfWidth;
     orbit.position.x +=
-      (travelX - orbit.position.x) * (reduceMotion.matches ? 1 : 1 - Math.exp(-7.7 * dt));
+      (travelX + safeOffset - orbit.position.x) * (reduceMotion.matches ? 1 : 1 - Math.exp(-7.7 * dt));
     orbit.position.y = baseOffsetY + cam.lift * camRadius;
 
     // Keep the forge dust wrapped around the specimen as it travels.
@@ -649,16 +872,11 @@ if (stage && canvas) {
       pivot.rotation.x = dragPitch + pointerY * 0.025;
     }
 
-    if (sparkParticles && !reduceMotion.matches) updateSparks(dt);
+    const specimenBox = projectSpecimen();
+    updateCopyLayer(specimenBox, dt);
+    updateSafeArea(specimenBox, dt);
 
-    if (copyShouldShow()) {
-      // Follow the limited playhead, not the raw scroll, so each beat gets its
-      // full reveal even when the wheel was flicked hard.
-      const beatIndex = Math.min(beats.length - 1, Math.floor(sceneProgress * beats.length));
-      setActiveBeat(beatIndex);
-    } else {
-      setActiveBeat(-1);
-    }
+    if (sparkParticles && !reduceMotion.matches) updateSparks(dt);
 
     if (now - lastAzimuthUpdate > 120 && azimuthEl) {
       lastAzimuthUpdate = now;

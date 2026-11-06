@@ -48,6 +48,8 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - Background: bg-pan-left 8s ease-in-out infinite alternate
 - About playhead is capped at `0.28` timeline fraction per second with easing `7`
 - Wheel governor releases over `3.8s`; fast scrolling must not skip beats
+- About copy follows the camera via `--copy-x` / `--copy-y`; keep the projected
+  specimen safe-area test intact when editing camera keys or copy width
 
 ### Making It More Premium
 - Add subtle micro-interactions (magnetic buttons, cursor effects)
