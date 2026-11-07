@@ -32,9 +32,10 @@ change the global ink to fix About copy.
 
 The copy layer is camera-linked: `about3d.js` projects sampled specimen
 vertices, drifts `.about-overlay` on `--copy-x` / `--copy-y`, and caps a
-screen-space safe-area push so the text always clears the bronze. Don't pin the
-copy back to a fixed `translate` or remove the safe-area test when changing the
-camera keys.
+screen-space safe-area push so the text always clears the bronze. The three
+beats alternate zones — About left, Practice right, Field Notes center-right —
+and the safe-area guard flips sides with the copy. Don't pin the copy back to a
+fixed `translate` or remove the safe-area test when changing camera keys.
 
 Type: `Archivo` 800/900 for display, `Instrument Serif` italic for emphasis,
 `JetBrains Mono` for labels and micro-copy.

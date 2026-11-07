@@ -276,11 +276,11 @@ if (stage && canvas) {
   const CAMERA_KEYS = [
     { at: 0, azimuth: -0.78, elevation: 0.58, distance: 0.92, lookY: -0.2, x: 0.6 },
     { at: 0.2, azimuth: -0.72, elevation: 0.54, distance: 0.9, lookY: -0.22, x: 0.61 },
-    { at: 0.36, azimuth: 0.16, elevation: 1.12, distance: 0.88, lookY: -0.3, x: 0.62 },
-    { at: 0.55, azimuth: 0.26, elevation: 1.06, distance: 0.9, lookY: -0.28, x: 0.63 },
-    { at: 0.7, azimuth: 0.86, elevation: 0.12, distance: 0.82, lookY: -0.1, x: 0.65 },
-    { at: 0.9, azimuth: 0.96, elevation: 0.06, distance: 0.78, lookY: -0.06, x: 0.66 },
-    { at: 1, azimuth: 1.02, elevation: 0.08, distance: 0.77, lookY: -0.07, x: 0.67 },
+    { at: 0.36, azimuth: 0.16, elevation: 1.12, distance: 0.88, lookY: -0.3, x: 0.34, lift: 0.06 },
+    { at: 0.55, azimuth: 0.26, elevation: 1.06, distance: 0.9, lookY: -0.28, x: 0.35, lift: 0.055 },
+    { at: 0.7, azimuth: 0.86, elevation: 0.12, distance: 0.82, lookY: -0.1, x: 0.36, lift: 0.015 },
+    { at: 0.9, azimuth: 0.96, elevation: 0.06, distance: 0.78, lookY: -0.06, x: 0.37 },
+    { at: 1, azimuth: 1.02, elevation: 0.08, distance: 0.77, lookY: -0.07, x: 0.38 },
   ];
   const CAMERA_KEYS_NARROW = [
     { at: 0, azimuth: -0.72, elevation: 0.72, distance: 1, lookY: -0.7, x: 0.5 },
@@ -310,6 +310,14 @@ if (stage && canvas) {
     camState.azimuth = THREE.MathUtils.lerp(from.azimuth, to.azimuth, eased);
     camState.elevation = THREE.MathUtils.lerp(from.elevation, to.elevation, eased);
     camState.distance = THREE.MathUtils.lerp(from.distance, to.distance, eased);
+
+    // The top-down Practice pass shows the full silhouette and reads much
+    // larger than the low flank shots. On tight landscape viewports that
+    // silhouette would leave the upper-left frame, so pull those angles back.
+    if (viewportTight) {
+      camState.distance *= 1 + Math.max(0, camState.elevation - 0.3) * 0.55;
+    }
+
     camState.lookY = THREE.MathUtils.lerp(from.lookY, to.lookY, eased);
     camState.lift = THREE.MathUtils.lerp(from.lift || 0, to.lift || 0, eased);
     // Narrow landscape has less horizontal room once the specimen is lifted
@@ -442,6 +450,24 @@ if (stage && canvas) {
   let copyX = 0;
   let copyY = 0;
   let safeOffset = 0;
+  let copySide = "left";
+
+  function copySideFor(beat) {
+    if (!beat) return "left";
+    const width = stage.clientWidth || 1;
+    const center = beat.offsetLeft + beat.offsetWidth / 2;
+    return center > width * 0.55 ? "right" : "left";
+  }
+
+  function syncCopyPresentation() {
+    if (!pin) return;
+    const nextSide =
+      !viewportNarrow && activeBeat >= 0 ? copySideFor(beats[activeBeat]) : "left";
+
+    if (nextSide === copySide) return;
+    copySide = nextSide;
+    pin.classList.toggle("is-copy-right", copySide === "right");
+  }
 
   function updateCopyLayer(bounds, dt) {
     if (!overlay) return;
@@ -487,11 +513,19 @@ if (stage && canvas) {
     fadingTime = Math.max(0, fadingTime - dt);
 
     if (bounds && activeBeat >= 0 && !viewportNarrow && modelReady) {
-      const visible = [beats[activeBeat]];
+      const active = beats[activeBeat];
+      const side = copySideFor(active);
+      const visible = [active];
+
+      // A beat fading out on the same side still needs clearance. Across
+      // sides, only the incoming copy can be avoided; the old plate is on its
+      // way out and the specimen is already travelling to the other edge.
       if (fadingTime > 0 && fadingBeat >= 0 && beats[fadingBeat]) {
-        visible.push(beats[fadingBeat]);
+        const fading = beats[fadingBeat];
+        if (copySideFor(fading) === side) visible.push(fading);
       }
 
+      const copyLeft = Math.min(...visible.map((beat) => beat.offsetLeft)) + copyX;
       const copyRight =
         Math.max(...visible.map((beat) => beat.offsetLeft + beat.offsetWidth)) + copyX;
       const copyTop = Math.min(...visible.map((beat) => beat.offsetTop)) + copyY;
@@ -508,33 +542,66 @@ if (stage && canvas) {
         stage.clientHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
       const pxPerWorldX = Math.max(0.001, (focalPx * Math.abs(cameraRight.x)) / depth);
       const maxPushPx = Math.min(180, stage.clientWidth * 0.14);
-      const guide = copyRight + 30;
+      const gap = 30;
+      const guide = side === "right" ? copyLeft - gap : copyRight + gap;
+      const currentPushPx = safeOffset * pxPerWorldX;
 
       if (specimenPointCount) {
-        // Only vertices inside the copy's vertical band matter. Finding the
-        // nearest one keeps the tail on screen instead of pushing the whole
-        // bounding box clear.
+        // Only vertices inside the copy's vertical band matter. Clearing the
+        // nearest edge keeps the tail on screen instead of pushing the whole
+        // bounding box away from the plate.
         const bandTop = copyTop - 24;
         const bandBottom = copyBottom + 24;
-        let clearance = Infinity;
 
-        for (let i = 0; i < specimenPointCount; i += 1) {
-          const y = projectedYs[i];
-          if (y < bandTop || y > bandBottom) continue;
-          clearance = Math.min(clearance, projectedXs[i] - guide);
-        }
+        if (side === "right") {
+          let intrusion = 0;
 
-        if (clearance !== Infinity) {
-          const currentPushPx = safeOffset * pxPerWorldX;
-          const requiredPushPx = currentPushPx - clearance;
-          target = clamp(requiredPushPx / pxPerWorldX, 0, maxPushPx / pxPerWorldX);
+          for (let i = 0; i < specimenPointCount; i += 1) {
+            const y = projectedYs[i];
+            if (y < bandTop || y > bandBottom) continue;
+            intrusion = Math.max(intrusion, projectedXs[i] - guide);
+          }
+
+          if (intrusion > 0) {
+            target = clamp(
+              (currentPushPx - intrusion) / pxPerWorldX,
+              -maxPushPx / pxPerWorldX,
+              0
+            );
+          }
+        } else {
+          let clearance = Infinity;
+
+          for (let i = 0; i < specimenPointCount; i += 1) {
+            const y = projectedYs[i];
+            if (y < bandTop || y > bandBottom) continue;
+            clearance = Math.min(clearance, projectedXs[i] - guide);
+          }
+
+          if (clearance !== Infinity && clearance < 0) {
+            target = clamp(
+              (currentPushPx - clearance) / pxPerWorldX,
+              0,
+              maxPushPx / pxPerWorldX
+            );
+          }
         }
       } else {
         const verticalHit = copyBottom > bounds.top - 24 && copyTop < bounds.bottom + 24;
 
         if (verticalHit) {
-          const baseLeft = bounds.left - safeOffset * pxPerWorldX;
-          target = clamp((guide - baseLeft) / pxPerWorldX, 0, maxPushPx / pxPerWorldX);
+          if (side === "right") {
+            if (bounds.right > guide) {
+              target = clamp(
+                (currentPushPx - (bounds.right - guide)) / pxPerWorldX,
+                -maxPushPx / pxPerWorldX,
+                0
+              );
+            }
+          } else {
+            const baseLeft = bounds.left - currentPushPx;
+            target = clamp((guide - baseLeft) / pxPerWorldX, 0, maxPushPx / pxPerWorldX);
+          }
         }
       }
     }
@@ -832,6 +899,7 @@ if (stage && canvas) {
     } else {
       setActiveBeat(-1);
     }
+    syncCopyPresentation();
 
     const pointerEase = 1 - Math.exp(-3 * dt);
     pointerX += (targetPointerX - pointerX) * pointerEase;
@@ -844,7 +912,8 @@ if (stage && canvas) {
     // The camera walks through a new angle per beat while the specimen keeps
     // drifting right, so the pinned scene never settles into a still frame.
     const cam = sampleCamera(reduceMotion.matches ? 0.5 : sceneProgress);
-    const camRadius = cameraRadius * cam.distance;
+    const camRadius =
+      cameraRadius * cam.distance * (reduceMotion.matches && !viewportNarrow ? 1.16 : 1);
 
     cameraTarget.set(
       Math.sin(cam.azimuth) * Math.cos(cam.elevation) * camRadius,

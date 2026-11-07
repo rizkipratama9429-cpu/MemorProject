@@ -1166,28 +1166,62 @@ a {
   pointer-events: none;
 }
 
+.about-pin.is-copy-right .about-grid-overlay {
+  -webkit-mask-image: radial-gradient(74% 78% at 38% 46%, #000 0%, transparent 88%);
+  mask-image: radial-gradient(74% 78% at 38% 46%, #000 0%, transparent 88%);
+}
+
 .about-glow {
   position: absolute;
   top: 44%;
-  right: -4%;
+  left: 68%;
   z-index: 2;
   width: min(72vw, 880px);
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(171, 196, 255, 0.18) 0%, rgba(171, 196, 255, 0.05) 38%, transparent 68%);
   filter: blur(26px);
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
+  transition: left 1s var(--ease-smooth);
   pointer-events: none;
+}
+
+.about-pin.is-copy-right .about-glow {
+  left: 36%;
 }
 
 .about-scrim {
   position: absolute;
   inset: 0;
   z-index: 3;
-  background:
-    linear-gradient(90deg, rgba(11, 19, 34, 0.96) 0%, rgba(11, 19, 34, 0.72) 30%, rgba(11, 19, 34, 0.14) 58%, transparent 74%),
-    linear-gradient(0deg, rgba(11, 19, 34, 0.82) 0%, transparent 46%);
+  background: linear-gradient(0deg, rgba(11, 19, 34, 0.82) 0%, transparent 46%);
   pointer-events: none;
+}
+
+.about-scrim::before,
+.about-scrim::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.95s var(--ease-smooth);
+}
+
+.about-scrim::before {
+  background: linear-gradient(90deg, rgba(11, 19, 34, 0.96) 0%, rgba(11, 19, 34, 0.72) 30%, rgba(11, 19, 34, 0.14) 58%, transparent 74%);
+  opacity: 1;
+}
+
+.about-scrim::after {
+  background: linear-gradient(270deg, rgba(11, 19, 34, 0.97) 0%, rgba(11, 19, 34, 0.78) 30%, rgba(11, 19, 34, 0.34) 46%, rgba(11, 19, 34, 0.08) 62%, transparent 74%);
+  opacity: 0;
+}
+
+.about-pin.is-copy-right .about-scrim::before {
+  opacity: 0;
+}
+
+.about-pin.is-copy-right .about-scrim::after {
+  opacity: 1;
 }
 
 #specimenCanvas {
@@ -1216,9 +1250,10 @@ a {
 
 .about-beat {
   position: absolute;
-  left: 3rem;
-  bottom: 11%;
-  width: min(600px, 43vw);
+  left: var(--beat-left, 3rem);
+  right: var(--beat-right, auto);
+  bottom: var(--beat-bottom, 11%);
+  width: var(--beat-width, min(600px, 43vw));
   opacity: 0;
   transform: translate3d(var(--beat-enter-x, 0px), calc(34px + var(--beat-enter-y, 0px)), 0);
   translate: var(--copy-x) var(--copy-y);
@@ -1226,16 +1261,27 @@ a {
   will-change: opacity, transform, translate;
 }
 
+.about-beat:not(.is-active) {
+  transition-duration: 0.55s;
+}
+
 .about-beat[data-about-beat="0"] {
   --beat-enter-x: -14px;
 }
 
 .about-beat[data-about-beat="1"] {
+  --beat-left: auto;
+  --beat-right: 3rem;
+  --beat-bottom: 14%;
+  --beat-width: min(520px, 36vw);
   --beat-enter-x: 26px;
   --beat-enter-y: 8px;
 }
 
 .about-beat[data-about-beat="2"] {
+  --beat-left: 56%;
+  --beat-bottom: 11.5%;
+  --beat-width: min(560px, 37vw);
   --beat-enter-x: -22px;
   --beat-enter-y: 10px;
 }
@@ -1316,10 +1362,6 @@ a {
 .about-beat.is-active .about-subtitle {
   opacity: 1;
   transform: none;
-}
-
-.about-beat-notes {
-  width: min(640px, 45vw);
 }
 
 .about-char {
@@ -2584,6 +2626,13 @@ a {
   }
 }
 
+@media (min-width: 769px) and (max-width: 1120px) {
+  .about-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   body {
     cursor: auto;
@@ -2680,6 +2729,11 @@ a {
     mask-image: radial-gradient(82% 68% at 50% 42%, #000 0%, transparent 88%);
   }
 
+  .about-pin.is-copy-right .about-grid-overlay {
+    -webkit-mask-image: radial-gradient(82% 68% at 50% 42%, #000 0%, transparent 88%);
+    mask-image: radial-gradient(82% 68% at 50% 42%, #000 0%, transparent 88%);
+  }
+
   .about-glow {
     top: 36%;
     right: auto;
@@ -2688,10 +2742,19 @@ a {
     transform: translate(-50%, -50%);
   }
 
+  .about-pin.is-copy-right .about-glow {
+    left: 50%;
+  }
+
   .about-scrim {
     background:
       linear-gradient(0deg, rgba(11, 19, 34, 0.97) 0%, rgba(11, 19, 34, 0.82) 32%, rgba(11, 19, 34, 0.12) 62%, transparent 74%),
       linear-gradient(180deg, rgba(11, 19, 34, 0.62) 0%, transparent 18%);
+  }
+
+  .about-scrim::before,
+  .about-scrim::after {
+    display: none;
   }
 
   .about-beat {
@@ -3031,7 +3094,10 @@ a {
   .about-note,
   .about-facts,
   .about-subtitle,
-  .about-fieldnotes {
+  .about-fieldnotes,
+  .about-glow,
+  .about-scrim::before,
+  .about-scrim::after {
     transition: none !important;
   }
 

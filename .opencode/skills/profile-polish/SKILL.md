@@ -50,6 +50,8 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - Wheel governor releases over `3.8s`; fast scrolling must not skip beats
 - About copy follows the camera via `--copy-x` / `--copy-y`; keep the projected
   specimen safe-area test intact when editing camera keys or copy width
+- Beat zones: About left, Practice right (specimen mirrors upper-left), Field
+  Notes center-right around `56%`; the safe-area guard flips with the copy side
 
 ### Making It More Premium
 - Add subtle micro-interactions (magnetic buttons, cursor effects)
