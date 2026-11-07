@@ -26,13 +26,18 @@ A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. 
 | Hairlines | `--accent-soft` | `#c1d3fe` |
 | Ink | `--ink` | `#101a2e` |
 
-The About scene is the one dark plate (`#0b1322`) so the bronze specimen keeps
+The About scene is the one dark plate (`#0b1322`) so the blue specimen keeps
 its contrast. It re-declares the color tokens inside `.about-scene`; don't
 change the global ink to fix About copy.
 
+The specimen uses a five-stop cool ramp (`#d1dbe4` → `#a3b7ca` → `#7593af` →
+`#476f95` → `#194a7a`) blended in `about3d.js`. The gradient travels with the
+scroll timeline and drifts slowly while parked; keep new specimen colors inside
+that family.
+
 The copy layer is camera-linked: `about3d.js` projects sampled specimen
 vertices, drifts `.about-overlay` on `--copy-x` / `--copy-y`, and caps a
-screen-space safe-area push so the text always clears the bronze. The three
+screen-space safe-area push so the text always clears the specimen. The three
 beats alternate zones — About left, Practice right, Field Notes center-right —
 and the safe-area guard flips sides with the copy. Don't pin the copy back to a
 fixed `translate` or remove the safe-area test when changing camera keys.

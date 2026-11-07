@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// ---------- About: full-bleed bronze specimen ----------
+// ---------- About: full-bleed blue specimen ----------
 // The gecko is the About layer now, not a card inside it. Scrolling drifts
-// it along the x axis while the copy moves through two editorial beats.
+// it along the x axis while the copy moves through three editorial beats.
 
 const stage = document.querySelector("#specimenStage");
 const canvas = document.querySelector("#specimenCanvas");
@@ -21,6 +21,16 @@ if (stage && canvas) {
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+  // The specimen is an iridescent blue scan, not a bronze cast. The CSS ramp
+  // lives in :root as --color-1…5 so the bone, glow and sparks stay in one
+  // family; fall back to the same values if the stylesheet is late.
+  const SPECIMEN_PALETTE_FALLBACK = [0xd1dbe4, 0xa3b7ca, 0x7593af, 0x476f95, 0x194a7a];
+  const rootStyle = getComputedStyle(document.documentElement);
+  const SPECIMEN_PALETTE = SPECIMEN_PALETTE_FALLBACK.map((fallback, index) => {
+    const value = rootStyle.getPropertyValue(`--color-${index + 1}`).trim();
+    return value || fallback;
+  });
 
   // ---------- Scene ----------
   const scene = new THREE.Scene();
@@ -41,7 +51,7 @@ if (stage && canvas) {
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 768 ? 1.5 : 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.02;
 
   // ---------- Reflections ----------
   // A tiny procedural studio environment: hot white key, cyan rim, dark floor.
@@ -83,9 +93,9 @@ if (stage && canvas) {
   createEnvironment();
 
   // ---------- Light rig ----------
-  scene.add(new THREE.AmbientLight(0xdff1ff, 0.35));
+  scene.add(new THREE.AmbientLight(0xdff1ff, 0.32));
 
-  const keyLight = new THREE.DirectionalLight(0xfff0dd, 4.4);
+  const keyLight = new THREE.DirectionalLight(0xcfe0ff, 1.1);
   keyLight.position.set(4, 6, 3);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(1024, 1024);
@@ -98,15 +108,15 @@ if (stage && canvas) {
   keyLight.shadow.bias = -0.001;
   scene.add(keyLight);
 
-  const rimLight = new THREE.DirectionalLight(0xabc4ff, 4.2);
+  const rimLight = new THREE.DirectionalLight(0xabc4ff, 2);
   rimLight.position.set(-5, 3, -4);
   scene.add(rimLight);
 
-  const fillLight = new THREE.DirectionalLight(0xffd7ad, 1.2);
+  const fillLight = new THREE.DirectionalLight(0xffd7ad, 0.5);
   fillLight.position.set(-2, -4, 3);
   scene.add(fillLight);
 
-  const underLight = new THREE.PointLight(0xabc4ff, 14, 12, 2);
+  const underLight = new THREE.PointLight(0xabc4ff, 5, 12, 2);
   underLight.position.set(0, -1.8, 2.4);
   scene.add(underLight);
 
@@ -165,21 +175,17 @@ if (stage && canvas) {
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(SPARK_COUNT * 3);
     const colors = new Float32Array(SPARK_COUNT * 3);
+    const tints = SPECIMEN_PALETTE.slice(0, 3).map((hex) => new THREE.Color(hex));
 
     for (let i = 0; i < SPARK_COUNT; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 8.4;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 3.4;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 3.2;
 
-      if (Math.random() < 0.55) {
-        colors[i * 3] = 1.0;
-        colors[i * 3 + 1] = 0.62 + Math.random() * 0.14;
-        colors[i * 3 + 2] = 0.28 + Math.random() * 0.14;
-      } else {
-        colors[i * 3] = 0.36 + Math.random() * 0.12;
-        colors[i * 3 + 1] = 0.86 + Math.random() * 0.1;
-        colors[i * 3 + 2] = 1.0;
-      }
+      const tint = tints[Math.random() < 0.6 ? 0 : Math.random() < 0.7 ? 1 : 2];
+      colors[i * 3] = tint.r;
+      colors[i * 3 + 1] = tint.g;
+      colors[i * 3 + 2] = tint.b;
 
       sparkData.push({
         speedX: (Math.random() - 0.5) * 0.08,
@@ -266,6 +272,8 @@ if (stage && canvas) {
   let specimenPointCount = 0;
   let projectedXs = null;
   let projectedYs = null;
+  let specimenShader = null;
+  let specimenPosScale = 1;
   const projectionPoint = new THREE.Vector3();
   const modelCenterWorld = new THREE.Vector3();
   const cameraRight = new THREE.Vector3();
@@ -613,19 +621,94 @@ if (stage && canvas) {
   function buildModel(gltf) {
     const model = gltf.scene;
 
-    const bronze = new THREE.MeshStandardMaterial({
-      color: 0xa97645,
-      metalness: 0.88,
-      roughness: 0.36,
-      envMapIntensity: 1.6,
+    const palette = SPECIMEN_PALETTE.map((hex) => new THREE.Color(hex));
+
+    const bone = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      metalness: 0.1,
+      roughness: 0.62,
+      envMapIntensity: 0.55,
+      emissive: 0x061224,
       flatShading: false,
       // The scan ships double-sided; keep it so no bone surface vanishes.
       side: THREE.DoubleSide,
+      // Dither the palette ramp so the five blues blend without banding.
+      dithering: true,
     });
+
+    bone.onBeforeCompile = (shader) => {
+      shader.uniforms.uPalette0 = { value: palette[0] };
+      shader.uniforms.uPalette1 = { value: palette[1] };
+      shader.uniforms.uPalette2 = { value: palette[2] };
+      shader.uniforms.uPalette3 = { value: palette[3] };
+      shader.uniforms.uPalette4 = { value: palette[4] };
+      shader.uniforms.uFlow = { value: 0 };
+      shader.uniforms.uPosScale = { value: specimenPosScale };
+
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+          varying vec3 vSpecimenPos;`
+        )
+        .replace(
+          "#include <begin_vertex>",
+          `#include <begin_vertex>
+          vSpecimenPos = transformed;`
+        );
+
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+          varying vec3 vSpecimenPos;
+          uniform vec3 uPalette0;
+          uniform vec3 uPalette1;
+          uniform vec3 uPalette2;
+          uniform vec3 uPalette3;
+          uniform vec3 uPalette4;
+          uniform float uFlow;
+          uniform float uPosScale;
+
+          vec3 specimenPalette(float t) {
+            // Weight the ramp toward the mid and deep blues. The light stop
+            // stays as a narrow highlight instead of washing out the ribs.
+            float ramp = clamp(t, 0.0, 1.0);
+            if (ramp < 0.08) return mix(uPalette0, uPalette1, ramp / 0.08);
+            if (ramp < 0.3) return mix(uPalette1, uPalette2, (ramp - 0.08) / 0.22);
+            if (ramp < 0.68) return mix(uPalette2, uPalette3, (ramp - 0.3) / 0.38);
+            return mix(uPalette3, uPalette4, (ramp - 0.68) / 0.32);
+          }`
+        )
+        .replace(
+          "#include <color_fragment>",
+          `#include <color_fragment>
+          // Repeat the ramp along the skeleton so the whole silhouette picks
+          // up the light and deep blues, not just the skull. Folding the
+          // coordinate at each end keeps the drift seamless.
+          float specimenCoord =
+            (vSpecimenPos.x * 0.9 + vSpecimenPos.y * 0.04 + vSpecimenPos.z * 0.08)
+            * uPosScale * 2.2 + 0.5 + uFlow;
+          vec3 specimenColor = specimenPalette(abs(fract(specimenCoord) * 2.0 - 1.0));
+          diffuseColor.rgb = specimenColor;`
+        )
+        .replace(
+          "#include <emissivemap_fragment>",
+          `#include <emissivemap_fragment>
+          float specimenRim = pow(
+            1.0 - clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0),
+            2.4
+          );
+          totalEmissiveRadiance += specimenColor * (0.14 + specimenRim * 0.32);`
+        );
+
+      specimenShader = shader;
+    };
+    bone.customProgramCacheKey = () => "specimen-palette-v1";
 
     model.traverse((child) => {
       if (!child.isMesh) return;
-      child.material = bronze;
+      child.material = bone;
       child.castShadow = true;
       child.receiveShadow = true;
     });
@@ -634,6 +717,10 @@ if (stage && canvas) {
     const initialBox = new THREE.Box3().setFromObject(model);
     const initialSize = initialBox.getSize(new THREE.Vector3());
     const maxDim = Math.max(initialSize.x, initialSize.y, initialSize.z);
+    // Normalize the shader's position coordinate too, so the palette ramp
+    // spans the specimen once regardless of the scan's export scale.
+    specimenPosScale = 1 / (maxDim > 0.0001 ? maxDim : 1);
+    if (specimenShader) specimenShader.uniforms.uPosScale.value = specimenPosScale;
     model.scale.setScalar(3.6 / (maxDim > 0.0001 ? maxDim : 1));
     model.updateMatrixWorld(true);
 
@@ -900,6 +987,13 @@ if (stage && canvas) {
       setActiveBeat(-1);
     }
     syncCopyPresentation();
+
+    if (specimenShader) {
+      // A full colour cycle across the section, plus a slow drift so the blue
+      // stays alive while the scene is parked. Reduced motion follows scroll.
+      const drift = reduceMotion.matches ? 0 : clock.elapsedTime * 0.02;
+      specimenShader.uniforms.uFlow.value = sceneProgress + drift;
+    }
 
     const pointerEase = 1 - Math.exp(-3 * dt);
     pointerX += (targetPointerX - pointerX) * pointerEase;

@@ -30,6 +30,7 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - **Palette (60/30/10):** paper `#edf2fa` · support `#d7e3fc` / card `#ccdbfd` · accent `#abc4ff` · hairlines `#c1d3fe`
 - **Ink:** `#101a2e` for all readable text; `#4c5a76` for secondary copy
 - **About plate:** `#0b1322` is the only dark section — it scopes its own light-ink tokens
+- **Specimen palette:** `#d1dbe4` → `#a3b7ca` → `#7593af` → `#476f95` → `#194a7a`, blended on a scroll-driven ramp
 - **Fonts:** Archivo (display/body, 800–900 for headlines), Instrument Serif italic (emphasis), JetBrains Mono (labels)
 - **Easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for smooth expo-out
 - **Shadows:** hard offset print shadows (`8px 8px 0 var(--accent)`), not soft glows
@@ -72,5 +73,5 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 
 1. **Always test responsive** — check breakpoints at 1440×900, 1024×768, 390×844
 2. **Preserve the edit panel** — don't break localStorage functionality
-3. **Keep the About plate dark** — the bronze specimen needs contrast; use scoped overrides
+3. **Keep the About plate dark** — the blue specimen needs contrast; use scoped overrides
 4. **Commit and push** — after changes, commit with a descriptive message and push to GitHub
