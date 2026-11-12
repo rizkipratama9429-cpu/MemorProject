@@ -219,6 +219,181 @@ function paintIfMoved() {
   if (window.scrollY !== lastY) paintLayers();
 }
 
+// ---------- Expertise: scroll-revealed halftone plates ----------
+// Each photograph is sampled to a 100 x 100 grid and every sample prints as
+// one dot, so the plate resolves like ink on paper instead of fading in. The
+// scroll position grows the dots, then dithered wipes hand one image to the
+// next. Kept outside the Lenis block so reduced motion still paints a plate.
+
+const EXPERTISE_PLATES = [
+  { src: "assets/image%20transition/901fdd37ca80da575356483d7aebc477.jpg", name: "Ocular macro" },
+  { src: "assets/image%20transition/leopard-gecko.webp", name: "Eublepharis macularius" },
+  {
+    src: "assets/image%20transition/paul-starosta-eublepharis-macularius-leopard-gecko_u-l-pshqss0.jpg",
+    name: "Nocturnal study",
+  },
+  { src: "assets/image%20transition/download%20%281%29.jpg", name: "Captive habitat" },
+];
+
+const HALFTONE_GRID = 100;
+const HALFTONE_SIZE = 700;
+const HALFTONE_CELL = HALFTONE_SIZE / HALFTONE_GRID;
+const HALFTONE_TOTAL = HALFTONE_GRID * HALFTONE_GRID;
+
+const clamp01 = (value) => (value < 0 ? 0 : value > 1 ? 1 : value);
+const smooth01 = (edge0, edge1, value) => {
+  const t = clamp01((value - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+};
+const grainAt = (x, y) => {
+  const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return n - Math.floor(n);
+};
+
+function setupExpertise() {
+  const scene = document.querySelector("#expertiseScene");
+  const canvas = document.querySelector("#expertiseCanvas");
+  if (!scene || !canvas) return null;
+
+  const ctx = canvas.getContext("2d");
+  const countEl = document.querySelector("#expertiseCount");
+  const nameEl = document.querySelector("#expertiseName");
+  const meterEl = document.querySelector("#expertiseMeter");
+  const hintEl = document.querySelector("#expertiseHint");
+  const ghostEl = document.querySelector("#expertiseGhost");
+
+  const cellX = new Float32Array(HALFTONE_TOTAL);
+  const cellY = new Float32Array(HALFTONE_TOTAL);
+  const dissolve = new Float32Array(HALFTONE_TOTAL);
+  const wipe = new Float32Array(HALFTONE_TOTAL);
+
+  for (let y = 0; y < HALFTONE_GRID; y += 1) {
+    for (let x = 0; x < HALFTONE_GRID; x += 1) {
+      const i = y * HALFTONE_GRID + x;
+      cellX[i] = (x + 0.5) * HALFTONE_CELL;
+      cellY[i] = (y + 0.5) * HALFTONE_CELL;
+
+      const dx = ((x + 0.5) / HALFTONE_GRID) * 2 - 1;
+      const dy = ((y + 0.5) / HALFTONE_GRID) * 2 - 1;
+      const radius = Math.sqrt(dx * dx + dy * dy) / Math.SQRT2;
+      const grain = grainAt(x, y);
+      // Centre-out dissolve for the first plate, left-to-right grain wipe for
+      // every hand-off after it.
+      dissolve[i] = radius * 0.74 + grain * 0.26;
+      wipe[i] = (x / (HALFTONE_GRID - 1)) * 0.78 + grain * 0.22;
+    }
+  }
+
+  const plates = EXPERTISE_PLATES.map((plate) => ({ ...plate, data: null, radius: null, colors: null }));
+  let ready = false;
+  let lastProgress = -1;
+  let currentPlate = -1;
+
+  function loadPlate(plate) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        const off = document.createElement("canvas");
+        off.width = HALFTONE_GRID;
+        off.height = HALFTONE_GRID;
+        const octx = off.getContext("2d", { willReadFrequently: true });
+        const side = Math.min(img.naturalWidth, img.naturalHeight);
+        octx.drawImage(
+          img,
+          (img.naturalWidth - side) / 2,
+          (img.naturalHeight - side) / 2,
+          side,
+          side,
+          0,
+          0,
+          HALFTONE_GRID,
+          HALFTONE_GRID
+        );
+
+        const { data } = octx.getImageData(0, 0, HALFTONE_GRID, HALFTONE_GRID);
+        plate.data = data;
+        plate.radius = new Float32Array(HALFTONE_TOTAL);
+        plate.colors = new Array(HALFTONE_TOTAL);
+
+        for (let i = 0; i < HALFTONE_TOTAL; i += 1) {
+          const r = data[i * 4];
+          const g = data[i * 4 + 1];
+          const b = data[i * 4 + 2];
+          const lum = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255;
+          // Darker samples print a bigger dot; light ones leave paper. The
+          // slight ink multiply keeps the plate from going pastel on paper.
+          plate.radius[i] = HALFTONE_CELL * (0.46 + (1 - lum) * 0.3);
+          plate.colors[i] = `rgb(${(r * 0.94) | 0},${(g * 0.94) | 0},${(b * 0.94) | 0})`;
+        }
+        resolve();
+      };
+      img.onerror = resolve;
+      img.src = plate.src;
+    });
+  }
+
+  function draw(progress, forcedReveal) {
+    const p = clamp01(progress);
+    const reveal = forcedReveal ?? smooth01(0.02, 0.3, p);
+
+    ctx.clearRect(0, 0, HALFTONE_SIZE, HALFTONE_SIZE);
+
+    const segments = plates.length - 1;
+    const seg = p >= 1 ? segments - 0.0001 : p * segments;
+    const from = Math.min(Math.floor(seg), segments - 1);
+    const blend = smooth01(0.42, 1, seg - from);
+
+    const a = plates[from];
+    const b = plates[from + 1];
+
+    for (let i = 0; i < HALFTONE_TOTAL; i += 1) {
+      const plate = blend > wipe[i] ? b : a;
+      const dotRadius = plate.radius[i] * clamp01((reveal - dissolve[i]) / 0.28);
+      if (dotRadius < 0.12) continue;
+
+      ctx.fillStyle = plate.colors[i];
+      ctx.beginPath();
+      ctx.arc(cellX[i], cellY[i], dotRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const active = blend > 0.5 ? from + 1 : from;
+    if (active !== currentPlate) {
+      currentPlate = active;
+      if (countEl) {
+        countEl.textContent = `${String(active + 1).padStart(2, "0")} / ${String(plates.length).padStart(2, "0")}`;
+      }
+      if (nameEl) nameEl.textContent = plates[active].name;
+    }
+
+    if (meterEl) meterEl.style.width = `${(p * 100).toFixed(1)}%`;
+    if (hintEl) hintEl.style.opacity = (1 - smooth01(0.03, 0.14, p)).toFixed(3);
+    if (ghostEl) ghostEl.style.transform = `translate(-50%, -50%) translateX(${((0.5 - p) * 8).toFixed(2)}%)`;
+  }
+
+  Promise.all(plates.map(loadPlate)).then(() => {
+    ready = plates.every((plate) => plate.data);
+    if (!ready) return;
+    // Reduced motion keeps the plate fully printed and drops the pin in CSS.
+    if (reduceMotion.matches) draw(0, 1);
+    else draw(0);
+  });
+
+  function step() {
+    if (!ready) return;
+    const span = scene.offsetHeight - window.innerHeight;
+    const p = span > 0 ? clamp01(-scene.getBoundingClientRect().top / span) : 0;
+    if (lastProgress !== -1 && Math.abs(p - lastProgress) < 0.0008) return;
+    lastProgress = p;
+    draw(p);
+  }
+
+  return { step };
+}
+
+const expertise = setupExpertise();
+
 // ---------- Boot ----------
 
 if (!reduceMotion.matches) {
@@ -381,6 +556,7 @@ if (!reduceMotion.matches) {
     stepGovernor(Math.min(rawDt, 0.1));
     paintIfMoved();
     stepReveals(dt);
+    if (expertise) expertise.step();
 
     requestAnimationFrame(frame);
   }

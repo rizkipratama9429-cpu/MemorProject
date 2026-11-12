@@ -9,6 +9,7 @@ A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. 
 - Scroll progress bar
 - Magnetic buttons
 - Pinned About scene with a real-time 3D gecko specimen
+- Expertise halftone plate that resolves photographs as you scroll
 - Editable content (localStorage)
 - Footer with editable contact details and local time
 - Contact form
@@ -43,6 +44,13 @@ fixed `translate` or remove the safe-area test when changing camera keys.
 
 Type: `Archivo` 800/900 for display, `Instrument Serif` italic for emphasis,
 `JetBrains Mono` for labels and micro-copy.
+
+The Expertise plate (`.expertise-scene`) pins for 250vh. Each photograph is
+sampled to a 100 × 100 grid in `motion.js` and drawn as one ink dot per sample:
+scroll grows the dots from the centre, then a grain-dithered wipe hands one
+image to the next. The dot colours come from the photo itself, so the plate
+stays inside the pastel system. Under reduced motion the pin is dropped and the
+first plate is printed at full strength.
 
 ## Deployment
 
@@ -123,7 +131,7 @@ Do not add a `/index.html` fallback to `try_files`; it causes a rewrite cycle.
 ├── index.html          # Main page
 ├── styles.css          # All styles
 ├── script.js           # Edit panel, nav, form
-├── motion.js           # Lenis, reveals, About scroll governor
+├── motion.js           # Lenis, reveals, About governor, expertise halftone
 ├── about3d.js          # Three.js gecko specimen
 ├── assets/             # Model and texture assets
 ├── vercel.json         # Vercel deployment config

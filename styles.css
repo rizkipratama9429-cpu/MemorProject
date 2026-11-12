@@ -1611,6 +1611,146 @@ a {
   transition: width 0.3s linear;
 }
 
+/* ---------- Expertise: halftone reveal plate ---------- */
+/* The plate pins while scroll resolves one photographic plate at a time.
+   about3d.js is not involved: the whole transition is a 100 x 100 dot field
+   painted in motion.js, so it stays crisp at any viewport width. */
+.expertise-scene {
+  position: relative;
+  height: 250vh;
+  margin-bottom: 7rem;
+}
+
+.expertise-plate {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.expertise-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(16, 26, 46, 0.55) 0.5px, transparent 0.6px);
+  background-size: 3px 3px;
+  opacity: 0.28;
+  -webkit-mask-image: radial-gradient(115% 95% at 50% 50%, #000 12%, rgba(0, 0, 0, 0.4) 62%, transparent 88%);
+  mask-image: radial-gradient(115% 95% at 50% 50%, #000 12%, rgba(0, 0, 0, 0.4) 62%, transparent 88%);
+}
+
+.expertise-hint {
+  position: absolute;
+  top: clamp(2rem, 7vh, 4.5rem);
+  left: 50%;
+  z-index: 4;
+  transform: translateX(-50%);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 1.75;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  will-change: opacity;
+}
+
+.expertise-hint span {
+  display: block;
+}
+
+.expertise-hint i {
+  display: block;
+  width: 1px;
+  height: clamp(28px, 5vh, 52px);
+  margin: 1rem auto 0;
+  background: linear-gradient(var(--ink), transparent);
+  opacity: 0.45;
+}
+
+.expertise-ghost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  gap: 0.14em;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(4rem, 15vw, 12rem);
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  opacity: 0.12;
+  white-space: nowrap;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.expertise-figure {
+  position: relative;
+  z-index: 2;
+  width: clamp(240px, 26vw, 340px);
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+#expertiseCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border: 1px solid var(--ink);
+  background: var(--bg-card);
+  box-shadow: 12px 12px 0 rgba(16, 26, 46, 0.07);
+}
+
+.expertise-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+.expertise-count {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.expertise-name {
+  text-align: right;
+}
+
+.expertise-meter {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.6rem, 5vh, 3.5rem);
+  z-index: 3;
+  width: 132px;
+  height: 1px;
+  transform: translateX(-50%);
+  background: var(--line);
+}
+
+.expertise-meter span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background: var(--ink);
+}
+
 /* ---------- Skills ---------- */
 .skills-grid {
   display: grid;
@@ -2593,6 +2733,29 @@ a {
 }
 
 @media (max-width: 768px) {
+  .expertise-scene {
+    height: 200vh;
+    margin-bottom: 4.5rem;
+  }
+
+  .expertise-ghost {
+    font-size: clamp(3.4rem, 28vw, 6.5rem);
+    letter-spacing: -0.04em;
+  }
+
+  .expertise-ghost span:last-child {
+    display: none;
+  }
+
+  .expertise-figure {
+    width: min(62vw, 260px);
+  }
+
+  .expertise-hint {
+    font-size: 0.56rem;
+    letter-spacing: 0.16em;
+  }
+
   .nav {
     padding: 1rem 1.5rem;
   }
@@ -3006,6 +3169,23 @@ a {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  /* The plate becomes a normal block: image already resolved, no pin. */
+  .expertise-scene {
+    height: auto;
+    margin-bottom: 4rem;
+  }
+
+  .expertise-plate {
+    position: relative;
+    height: auto;
+    padding: 5rem 1.5rem 3rem;
+  }
+
+  .expertise-hint,
+  .expertise-meter {
+    display: none;
   }
 
   .page-bg-pan,

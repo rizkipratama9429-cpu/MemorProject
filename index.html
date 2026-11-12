@@ -48,7 +48,7 @@
   <!-- Analytics (uncomment and add your domain) -->
   <!-- <script defer data-domain="vinnyrz.com" src="https://plausible.io/js/script.js"></script> -->
 
-  <link rel="stylesheet" href="styles.css?v=20261108a">
+  <link rel="stylesheet" href="styles.css?v=20261108e">
 </head>
 <body>
 
@@ -315,6 +315,41 @@
   <!-- Skills -->
   <section class="section section-alt" id="skills">
     <div class="section-label"><span class="label-num">02</span> Expertise</div>
+
+    <!-- Expertise: scroll-revealed halftone plates -->
+    <div class="expertise-scene" id="expertiseScene">
+      <div class="expertise-plate">
+        <div class="expertise-grain" aria-hidden="true"></div>
+
+        <p class="expertise-hint" id="expertiseHint">
+          <span>Scroll down</span>
+          <span>to reveal</span>
+          <span>the images</span>
+          <i aria-hidden="true"></i>
+        </p>
+
+        <div class="expertise-ghost" id="expertiseGhost" aria-hidden="true">
+          <span>Specimen</span><span>Studies</span>
+        </div>
+
+        <figure class="expertise-figure">
+          <canvas
+            id="expertiseCanvas"
+            width="700"
+            height="700"
+            role="img"
+            aria-label="Halftone plate of a leopard gecko specimen"
+          ></canvas>
+          <figcaption class="expertise-caption">
+            <span class="expertise-count" id="expertiseCount">01 / 04</span>
+            <span class="expertise-name" id="expertiseName">Ocular macro</span>
+          </figcaption>
+        </figure>
+
+        <div class="expertise-meter" aria-hidden="true"><span id="expertiseMeter"></span></div>
+      </div>
+    </div>
+
     <div class="skills-grid">
       <div class="skill-card">
         <div class="skill-icon">
@@ -579,7 +614,7 @@
   </footer>
 
   <script src="script.js?v=20261108a"></script>
-  <script type="module" src="motion.js?v=20261106c"></script>
+  <script type="module" src="motion.js?v=20261108d"></script>
   <script type="module" src="about3d.js?v=20261108a"></script>
 </body>
 </html>

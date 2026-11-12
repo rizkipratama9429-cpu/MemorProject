@@ -11,7 +11,7 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - `index.html` — Main page structure
 - `styles.css` — All styles, animations
 - `script.js` — Edit panel, nav, contact form
-- `motion.js` — Lenis smooth scroll, reveals, About scroll governor
+- `motion.js` — Lenis smooth scroll, reveals, About scroll governor, expertise halftone plate
 - `about3d.js` — Three.js gecko specimen
 
 **Key Features:**
@@ -20,6 +20,7 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - Magnetic buttons
 - Edit panel for content (localStorage)
 - Pinned About scene (360vh desktop / 310vh mobile) with three camera beats
+- Expertise halftone plate (250vh) that resolves photos on scroll
 - Scroll reveals
 - Panning background animation (bg-pan-left/right)
 - Contact form with Formspree
