@@ -45,12 +45,15 @@ fixed `translate` or remove the safe-area test when changing camera keys.
 Type: `Archivo` 800/900 for display, `Instrument Serif` italic for emphasis,
 `JetBrains Mono` for labels and micro-copy.
 
-The Expertise plate (`.expertise-scene`) pins for 250vh. Each photograph is
+The Expertise plate (`.expertise-scene`) pins for 460vh. Each photograph is
 sampled to a 100 × 100 grid in `motion.js` and drawn as one ink dot per sample:
-scroll grows the dots from the centre, then a grain-dithered wipe hands one
-image to the next. The dot colours come from the photo itself, so the plate
-stays inside the pastel system. Under reduced motion the pin is dropped and the
-first plate is printed at full strength.
+scroll grows the dots from the centre, a shutter flash catches the moment the
+plate resolves, and a grain-dithered wipe with a zoom punch and fade dip hands
+one image to the next. Each plate holds for roughly half a viewport before the
+hand-off, so a fast flick still reads one image at a time. The dot colours come
+from the photo itself, so the plate stays inside the pastel system. Under
+reduced motion the pin is dropped and the first plate is printed at full
+strength.
 
 ## Deployment
 

@@ -1617,7 +1617,7 @@ a {
    painted in motion.js, so it stays crisp at any viewport width. */
 .expertise-scene {
   position: relative;
-  height: 250vh;
+  height: 460vh;
   margin-bottom: 7rem;
 }
 
@@ -1710,6 +1710,27 @@ a {
   border: 1px solid var(--ink);
   background: var(--bg-card);
   box-shadow: 12px 12px 0 rgba(16, 26, 46, 0.07);
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.expertise-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #f6fbff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.expertise-flash.is-firing {
+  animation: expertise-flash 620ms var(--ease-smooth);
+}
+
+@keyframes expertise-flash {
+  0% { opacity: 0; }
+  10% { opacity: 0.94; }
+  100% { opacity: 0; }
 }
 
 .expertise-caption {
@@ -1722,6 +1743,15 @@ a {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-light);
+}
+
+.expertise-caption.is-swap {
+  animation: expertise-caption 460ms var(--ease-smooth);
+}
+
+@keyframes expertise-caption {
+  0% { opacity: 0; transform: translateY(5px); }
+  100% { opacity: 1; transform: none; }
 }
 
 .expertise-count {
@@ -2734,7 +2764,7 @@ a {
 
 @media (max-width: 768px) {
   .expertise-scene {
-    height: 200vh;
+    height: 380vh;
     margin-bottom: 4.5rem;
   }
 
@@ -3184,8 +3214,13 @@ a {
   }
 
   .expertise-hint,
-  .expertise-meter {
+  .expertise-meter,
+  .expertise-flash {
     display: none;
+  }
+
+  #expertiseCanvas {
+    transform: none !important;
   }
 
   .page-bg-pan,

@@ -261,6 +261,8 @@ function setupExpertise() {
   const meterEl = document.querySelector("#expertiseMeter");
   const hintEl = document.querySelector("#expertiseHint");
   const ghostEl = document.querySelector("#expertiseGhost");
+  const flashEl = document.querySelector("#expertiseFlash");
+  const captionEl = document.querySelector(".expertise-caption");
 
   const cellX = new Float32Array(HALFTONE_TOTAL);
   const cellY = new Float32Array(HALFTONE_TOTAL);
@@ -288,6 +290,7 @@ function setupExpertise() {
   let ready = false;
   let lastProgress = -1;
   let currentPlate = -1;
+  let flashArmed = true;
 
   function loadPlate(plate) {
     return new Promise((resolve) => {
@@ -335,21 +338,33 @@ function setupExpertise() {
 
   function draw(progress, forcedReveal) {
     const p = clamp01(progress);
-    const reveal = forcedReveal ?? smooth01(0.02, 0.3, p);
+    const reveal = forcedReveal ?? smooth01(0.03, 0.17, p);
 
     ctx.clearRect(0, 0, HALFTONE_SIZE, HALFTONE_SIZE);
 
-    const segments = plates.length - 1;
-    const seg = p >= 1 ? segments - 0.0001 : p * segments;
-    const from = Math.min(Math.floor(seg), segments - 1);
-    const blend = smooth01(0.42, 1, seg - from);
+    // Four plates split the scroll after the entry dissolve. Each segment
+    // holds its image for most of its run and hands over in the last quarter,
+    // so a fast flick still reads as one image at a time.
+    const lastIndex = plates.length - 1;
+    const plateStart = 0.18;
+    const segRaw = clamp01((p - plateStart) / (1 - plateStart)) * plates.length;
+    const index = Math.min(Math.floor(segRaw), lastIndex);
+    const local = index === lastIndex ? 1 : segRaw - index;
+    const blend = index === lastIndex ? 0 : smooth01(0.72, 1, local);
+    const nextIndex = Math.min(index + 1, lastIndex);
 
-    const a = plates[from];
-    const b = plates[from + 1];
+    const a = plates[index];
+    const b = plates[nextIndex];
+
+    // Camera language: a slow push-in across the whole scene, a short zoom
+    // punch on each hand-off, and a fade dip so plates cross rather than cut.
+    const push = 0.965 + 0.07 * smooth01(plateStart, 1, p);
+    const punch = Math.sin(Math.PI * blend);
+    const fade = 1 - punch * 0.42;
 
     for (let i = 0; i < HALFTONE_TOTAL; i += 1) {
       const plate = blend > wipe[i] ? b : a;
-      const dotRadius = plate.radius[i] * clamp01((reveal - dissolve[i]) / 0.28);
+      const dotRadius = plate.radius[i] * clamp01((reveal - dissolve[i]) / 0.28) * fade;
       if (dotRadius < 0.12) continue;
 
       ctx.fillStyle = plate.colors[i];
@@ -358,17 +373,36 @@ function setupExpertise() {
       ctx.fill();
     }
 
-    const active = blend > 0.5 ? from + 1 : from;
+    canvas.style.transform = `scale(${(push + punch * 0.05).toFixed(4)})`;
+
+    // Shutter flash the moment the plate finishes resolving.
+    if (flashEl && !forcedReveal) {
+      if (reveal >= 0.999 && flashArmed) {
+        flashArmed = false;
+        flashEl.classList.remove("is-firing");
+        void flashEl.offsetWidth;
+        flashEl.classList.add("is-firing");
+      } else if (p < 0.12 && !flashArmed) {
+        flashArmed = true;
+      }
+    }
+
+    const active = blend > 0.5 ? nextIndex : index;
     if (active !== currentPlate) {
       currentPlate = active;
       if (countEl) {
         countEl.textContent = `${String(active + 1).padStart(2, "0")} / ${String(plates.length).padStart(2, "0")}`;
       }
       if (nameEl) nameEl.textContent = plates[active].name;
+      if (captionEl) {
+        captionEl.classList.remove("is-swap");
+        void captionEl.offsetWidth;
+        captionEl.classList.add("is-swap");
+      }
     }
 
     if (meterEl) meterEl.style.width = `${(p * 100).toFixed(1)}%`;
-    if (hintEl) hintEl.style.opacity = (1 - smooth01(0.03, 0.14, p)).toFixed(3);
+    if (hintEl) hintEl.style.opacity = (1 - smooth01(0.04, 0.13, p)).toFixed(3);
     if (ghostEl) ghostEl.style.transform = `translate(-50%, -50%) translateX(${((0.5 - p) * 8).toFixed(2)}%)`;
   }
 

@@ -20,7 +20,7 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - Magnetic buttons
 - Edit panel for content (localStorage)
 - Pinned About scene (360vh desktop / 310vh mobile) with three camera beats
-- Expertise halftone plate (250vh) that resolves photos on scroll
+- Expertise halftone plate (460vh) that resolves photos on scroll
 - Scroll reveals
 - Panning background animation (bg-pan-left/right)
 - Contact form with Formspree
