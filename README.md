@@ -6,7 +6,6 @@ A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. 
 
 - 60/30/10 pastel-blue palette with ink-led contrast
 - Archivo display/body, Instrument Serif italic emphasis, JetBrains Mono labels
-- Custom cursor with hover states
 - Scroll progress bar
 - Magnetic buttons
 - Pinned About scene with a real-time 3D gecko specimen
@@ -123,7 +122,7 @@ Do not add a `/index.html` fallback to `try_files`; it causes a rewrite cycle.
 ```
 ├── index.html          # Main page
 ├── styles.css          # All styles
-├── script.js           # Edit panel, cursor, nav, form
+├── script.js           # Edit panel, nav, form
 ├── motion.js           # Lenis, reveals, About scroll governor
 ├── about3d.js          # Three.js gecko specimen
 ├── assets/             # Model and texture assets

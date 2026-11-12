@@ -800,14 +800,6 @@ if (stage && canvas) {
   let lastPointerY = 0;
   let touched = false;
 
-  stage.addEventListener("pointerenter", () => {
-    document.querySelector("#cursorRing")?.classList.add("inspect");
-  });
-
-  stage.addEventListener("pointerleave", () => {
-    document.querySelector("#cursorRing")?.classList.remove("inspect");
-  });
-
   stage.addEventListener("pointerdown", (event) => {
     if (event.button !== undefined && event.button !== 0 && event.pointerType === "mouse") return;
 

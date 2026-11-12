@@ -73,7 +73,6 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  cursor: none;
 }
 
 /* ---------- Smooth Scroll (Lenis) ---------- */
@@ -137,53 +136,7 @@ html.lenis body {
 a {
   color: inherit;
   text-decoration: none;
-  cursor: none;
-}
-
-/* ---------- Custom Cursor ---------- */
-.cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: width 0.3s var(--ease-smooth), height 0.3s var(--ease-smooth), background 0.3s var(--ease-smooth);
-  box-shadow: 0 0 0 1px var(--ink);
-}
-
-.cursor-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition: width 0.4s var(--ease-smooth), height 0.4s var(--ease-smooth), border-color 0.3s var(--ease-smooth), background 0.3s var(--ease-smooth);
-  opacity: 0.55;
-  box-shadow: 0 0 0 1px rgba(237, 242, 250, 0.35);
-}
-
-.cursor-ring.hover {
-  width: 60px;
-  height: 60px;
-  background: var(--accent-glow);
-  opacity: 1;
-}
-
-.cursor-ring.inspect {
-  width: 68px;
-  height: 68px;
-  background: var(--accent-glow);
-  opacity: 1;
+  cursor: pointer;
 }
 
 /* ---------- Scroll Progress ---------- */
@@ -211,7 +164,7 @@ a {
   background: var(--accent);
   border: 1px solid var(--ink);
   color: var(--ink);
-  cursor: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -273,7 +226,7 @@ a {
   border: none;
   color: var(--ink-light);
   font-size: 1.5rem;
-  cursor: none;
+  cursor: pointer;
   transition: all 0.3s var(--ease-smooth);
   width: 32px;
   height: 32px;
@@ -351,7 +304,7 @@ a {
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  cursor: none;
+  cursor: pointer;
   transition: all 0.3s var(--ease-smooth);
 }
 
@@ -2244,7 +2197,7 @@ a {
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: none;
+  cursor: pointer;
   transition: all 0.35s var(--ease-smooth);
   position: relative;
 }
@@ -2640,19 +2593,6 @@ a {
 }
 
 @media (max-width: 768px) {
-  body {
-    cursor: auto;
-  }
-
-  .cursor-dot,
-  .cursor-ring {
-    display: none;
-  }
-
-  a, .edit-toggle, .edit-close, .edit-reset, .form-submit {
-    cursor: pointer;
-  }
-
   .nav {
     padding: 1rem 1.5rem;
   }

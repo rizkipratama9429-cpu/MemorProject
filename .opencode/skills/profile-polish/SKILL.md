@@ -10,13 +10,12 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 **Files:**
 - `index.html` — Main page structure
 - `styles.css` — All styles, animations
-- `script.js` — Edit panel, cursor, nav, contact form
+- `script.js` — Edit panel, nav, contact form
 - `motion.js` — Lenis smooth scroll, reveals, About scroll governor
 - `about3d.js` — Three.js gecko specimen
 
 **Key Features:**
 - 60/30/10 pastel-blue palette with ink-led contrast
-- Custom cursor with hover states
 - Scroll progress bar
 - Magnetic buttons
 - Edit panel for content (localStorage)
@@ -55,7 +54,7 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
   Notes center-right around `56%`; the safe-area guard flips with the copy side
 
 ### Making It More Premium
-- Add subtle micro-interactions (magnetic buttons, cursor effects)
+- Add subtle micro-interactions (magnetic buttons, reveal timing)
 - Use blur + fade for scroll reveals
 - Use hard offset accent shadows instead of cyan glow
 - Keep animations slow and smooth (0.4–0.8s)

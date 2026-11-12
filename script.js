@@ -163,48 +163,6 @@
     applyContent();
   });
 
-  // ---------- Custom Cursor ----------
-  const cursorDot = document.getElementById('cursorDot');
-  const cursorRing = document.getElementById('cursorRing');
-  let mouseX = 0, mouseY = 0;
-  let ringX = 0, ringY = 0;
-
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursorDot.style.left = mouseX + 'px';
-    cursorDot.style.top = mouseY + 'px';
-  });
-
-  // Smooth ring follow
-  function updateCursor() {
-    ringX += (mouseX - ringX) * 0.12;
-    ringY += (mouseY - ringY) * 0.12;
-    cursorRing.style.left = ringX + 'px';
-    cursorRing.style.top = ringY + 'px';
-    requestAnimationFrame(updateCursor);
-  }
-  updateCursor();
-
-  // Hover effects for interactive elements (delegated: nav links get rebuilt)
-  const hoverSelector = 'a, button, .skill-card, .work-item, .writing-card, .testimonial-card, .fact, input, textarea';
-
-  document.addEventListener('mouseover', (e) => {
-    const el = e.target.closest(hoverSelector);
-    if (!el || el.contains(e.relatedTarget)) return;
-    cursorRing.classList.add('hover');
-    cursorDot.style.width = '12px';
-    cursorDot.style.height = '12px';
-  });
-
-  document.addEventListener('mouseout', (e) => {
-    const el = e.target.closest(hoverSelector);
-    if (!el || el.contains(e.relatedTarget)) return;
-    cursorRing.classList.remove('hover');
-    cursorDot.style.width = '8px';
-    cursorDot.style.height = '8px';
-  });
-
   // ---------- Magnetic Buttons ----------
   const magneticElements = document.querySelectorAll('.magnetic');
   const magneticStrength = 0.3;
