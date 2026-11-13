@@ -35,6 +35,14 @@ page. The zoomed poster (`gecko-transparent.png`) paints first and cross-fades
 to the canvas once the mesh is ready; the 46 MB download is deferred until
 after `load`. Keep any new hero tones inside that three-stop cool ramp.
 
+The hero composition is a left axis and a right counterweight: both title lines
+share the same left margin, and the specimen is mirrored in CSS (not in the
+mesh) so its head turns into the type while the dark flank and pale belly are
+preserved. The shell sits at `63%` with a right-edge mask that lets the tail
+dissolve. Under `768px` the mirror and offset are dropped, and the model is
+centered with its head to the open right edge. Don't flip the yaw instead — the
+opposite flank loses the eye and head shading.
+
 The About scene is the one dark plate (`#0b1322`) so the blue specimen keeps
 its contrast. It re-declares the color tokens inside `.about-scene`; don't
 change the global ink to fix About copy.

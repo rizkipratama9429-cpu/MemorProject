@@ -34,6 +34,7 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - **About plate:** `#0b1322` is the only dark section — it scopes its own light-ink tokens
 - **Specimen palette:** `#d1dbe4` → `#a3b7ca` → `#7593af` → `#476f95` → `#194a7a`, blended on a scroll-driven ramp
 - **Hero specimen:** unlit depth ramp `#dde8f7` → `#9db4d1` → `#35496a` (`bone` → `mid` → `ink`); poster cross-fades to canvas
+- **Hero composition:** both title lines flush left; specimen mirrored in CSS at `63%` top-right, head facing the type. Do not mirror by yaw — the other flank loses the head shading. Below `768px` the mirror/offset are reset and the gecko centers with the head right
 - **Fonts:** Archivo (display/body, 800–900 for headlines), Instrument Serif italic (emphasis), JetBrains Mono (labels)
 - **Easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for smooth expo-out
 - **Shadows:** hard offset print shadows (`8px 8px 0 var(--accent)`), not soft glows
