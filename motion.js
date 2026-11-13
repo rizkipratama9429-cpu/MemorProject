@@ -329,6 +329,21 @@ function setupExpertise() {
           plate.radius[i] = HALFTONE_CELL * (0.46 + (1 - lum) * 0.3);
           plate.colors[i] = `rgb(${(r * 0.94) | 0},${(g * 0.94) | 0},${(b * 0.94) | 0})`;
         }
+
+        // Fully printed copy of the plate. Everything outside a hand-off blits
+        // this instead of issuing 10,000 arcs per frame.
+        const print = document.createElement("canvas");
+        print.width = HALFTONE_SIZE;
+        print.height = HALFTONE_SIZE;
+        const pctx = print.getContext("2d");
+        for (let i = 0; i < HALFTONE_TOTAL; i += 1) {
+          pctx.fillStyle = plate.colors[i];
+          pctx.beginPath();
+          pctx.arc(cellX[i], cellY[i], plate.radius[i], 0, Math.PI * 2);
+          pctx.fill();
+        }
+        plate.print = print;
+
         resolve();
       };
       img.onerror = resolve;
@@ -362,15 +377,20 @@ function setupExpertise() {
     const punch = Math.sin(Math.PI * blend);
     const fade = 1 - punch * 0.42;
 
-    for (let i = 0; i < HALFTONE_TOTAL; i += 1) {
-      const plate = blend > wipe[i] ? b : a;
-      const dotRadius = plate.radius[i] * clamp01((reveal - dissolve[i]) / 0.28) * fade;
-      if (dotRadius < 0.12) continue;
+    const held = blend === 0 && reveal >= 0.999;
+    if (held && a.print) {
+      ctx.drawImage(a.print, 0, 0);
+    } else {
+      for (let i = 0; i < HALFTONE_TOTAL; i += 1) {
+        const plate = blend > wipe[i] ? b : a;
+        const dotRadius = plate.radius[i] * clamp01((reveal - dissolve[i]) / 0.28) * fade;
+        if (dotRadius < 0.12) continue;
 
-      ctx.fillStyle = plate.colors[i];
-      ctx.beginPath();
-      ctx.arc(cellX[i], cellY[i], dotRadius, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = plate.colors[i];
+        ctx.beginPath();
+        ctx.arc(cellX[i], cellY[i], dotRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     canvas.style.transform = `scale(${(push + punch * 0.05).toFixed(4)})`;
@@ -427,6 +447,29 @@ function setupExpertise() {
 }
 
 const expertise = setupExpertise();
+
+// ---------- Expertise entrance ----------
+// The plate enters with animate.css fadeInUp: the card rises a full card height
+// and fades in once, the first time the plate is half on screen. Scroll then
+// drives the halftone. Skipped entirely under reduced motion.
+
+const expertiseScene = document.querySelector("#expertiseScene");
+const expertisePlate = expertiseScene?.querySelector(".expertise-plate");
+
+if (expertiseScene && expertisePlate && !reduceMotion.matches) {
+  document.documentElement.classList.add("expertise-entrance");
+
+  const entrance = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      expertiseScene.classList.add("is-entered");
+      entrance.disconnect();
+    },
+    { threshold: 0.55 }
+  );
+
+  entrance.observe(expertisePlate);
+}
 
 // ---------- Boot ----------
 
