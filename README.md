@@ -8,6 +8,7 @@ A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. 
 - Archivo display/body, Instrument Serif italic emphasis, JetBrains Mono labels
 - Scroll progress bar
 - Magnetic buttons
+- Hero gecko rendered as a live depth-map specimen
 - Pinned About scene with a real-time 3D gecko specimen
 - Expertise halftone plate that resolves photographs as you scroll
 - Editable content (localStorage)
@@ -25,6 +26,14 @@ A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. 
 | Accent (10%) | `--accent` | `#abc4ff` |
 | Hairlines | `--accent-soft` | `#c1d3fe` |
 | Ink | `--ink` | `#101a2e` |
+
+The hero specimen is `assets/meshy-model.glb` shaded by `hero3d.js` with an
+unlit depth ramp: near surfaces pale (`#dde8f7`), far surfaces ink (`#35496a`),
+with a soft camera-space form term and a thin grazing rim. No lights or
+environment maps are used, so the model keeps the flat, printed look of the
+page. The zoomed poster (`gecko-transparent.png`) paints first and cross-fades
+to the canvas once the mesh is ready; the 46 MB download is deferred until
+after `load`. Keep any new hero tones inside that three-stop cool ramp.
 
 The About scene is the one dark plate (`#0b1322`) so the blue specimen keeps
 its contrast. It re-declares the color tokens inside `.about-scene`; don't
@@ -137,7 +146,8 @@ Do not add a `/index.html` fallback to `try_files`; it causes a rewrite cycle.
 ├── styles.css          # All styles
 ├── script.js           # Edit panel, nav, form
 ├── motion.js           # Lenis, reveals, About governor, expertise halftone
-├── about3d.js          # Three.js gecko specimen
+├── about3d.js          # Three.js gecko specimen (About)
+├── hero3d.js           # Depth-ramp gecko specimen (hero)
 ├── assets/             # Model and texture assets
 ├── vercel.json         # Vercel deployment config
 ├── netlify.toml        # Netlify deployment config
@@ -151,7 +161,7 @@ Do not add a `/index.html` fallback to `try_files`; it causes a rewrite cycle.
 - **HTML5** — Semantic markup
 - **CSS3** — Custom properties, Grid, Flexbox, animations
 - **Vanilla JS** — Edit panel and interactions
-- **Lenis / Three.js** — Smooth scroll and the 3D specimen, loaded as ES modules
+- **Lenis / Three.js** — Smooth scroll and both 3D specimens, loaded as ES modules
 - **Fonts** — Archivo, Instrument Serif, JetBrains Mono (Google Fonts)
 
 ## License

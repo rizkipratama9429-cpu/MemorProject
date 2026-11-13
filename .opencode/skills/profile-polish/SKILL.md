@@ -12,12 +12,14 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - `styles.css` — All styles, animations
 - `script.js` — Edit panel, nav, contact form
 - `motion.js` — Lenis smooth scroll, reveals, About scroll governor, expertise halftone plate
-- `about3d.js` — Three.js gecko specimen
+- `about3d.js` — Three.js gecko specimen (About)
+- `hero3d.js` — Depth-ramp 3D gecko (hero)
 
 **Key Features:**
 - 60/30/10 pastel-blue palette with ink-led contrast
 - Scroll progress bar
 - Magnetic buttons
+- Hero gecko as a live depth-map specimen (`assets/meshy-model.glb`)
 - Edit panel for content (localStorage)
 - Pinned About scene (360vh desktop / 310vh mobile) with three camera beats
 - Expertise halftone plate (460vh) that fades up on entry and resolves photos on scroll
@@ -31,6 +33,7 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - **Ink:** `#101a2e` for all readable text; `#4c5a76` for secondary copy
 - **About plate:** `#0b1322` is the only dark section — it scopes its own light-ink tokens
 - **Specimen palette:** `#d1dbe4` → `#a3b7ca` → `#7593af` → `#476f95` → `#194a7a`, blended on a scroll-driven ramp
+- **Hero specimen:** unlit depth ramp `#dde8f7` → `#9db4d1` → `#35496a` (`bone` → `mid` → `ink`); poster cross-fades to canvas
 - **Fonts:** Archivo (display/body, 800–900 for headlines), Instrument Serif italic (emphasis), JetBrains Mono (labels)
 - **Easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for smooth expo-out
 - **Shadows:** hard offset print shadows (`8px 8px 0 var(--accent)`), not soft glows
@@ -45,6 +48,10 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 
 ### Animation Tuning
 - Hero blur-out triggers at About section approach
+- Hero specimen drifts with a slow sway plus pointer parallax; reduced motion
+  renders one static frame and stops
+- Hero canvas fades in over `gecko-transparent.png`; keep the poster so the
+  first paint is never empty while the 46 MB GLB loads after `load`
 - Nav links: slide-in-left on load, accent underline on hover
 - Background: bg-pan-left 8s ease-in-out infinite alternate
 - About playhead is capped at `0.28` timeline fraction per second with easing `7`

@@ -13,11 +13,9 @@
     hero1: 'VIN UIX',
     hero2: '',
     hero3: 'Portfolio',
-    heroSub: "I'm Vinnyrz — a designer-developer hybrid who cares about the details most people never notice but everyone feels.",
     marquee: 'Product Design, Front-End Development, Design Systems, Prototyping, Creative Direction',
-    aboutLead: "I've spent the last 8 years at the intersection of design and code — where most people see a handoff, I see a conversation.",
+    aboutLead: "I'm Vinnyrz — a designer-developer hybrid who cares about the details most people never notice but everyone feels.",
     aboutBody: 'My work lives in the space between what something looks like and how it actually works. I believe good design is invisible until it\'s missing, and great engineering is the same.',
-    status: 'Available for freelance',
     location: 'Portland, OR',
     email: "Hello People's"
   };
@@ -41,10 +39,8 @@
     document.getElementById('navLogo').textContent = content.logo;
     document.getElementById('heroLine1').textContent = content.hero1;
     document.getElementById('heroLine3').textContent = content.hero3;
-    document.getElementById('heroSub').textContent = content.heroSub;
     document.getElementById('aboutLead').textContent = content.aboutLead;
     document.getElementById('aboutBody').textContent = content.aboutBody;
-    document.getElementById('statusText').textContent = content.status;
     document.getElementById('locationText').textContent = content.location;
     document.getElementById('contactEmail').textContent = content.email;
 
@@ -83,11 +79,9 @@
     document.getElementById('editLinks').value = content.links;
     document.getElementById('editHero1').value = content.hero1;
     document.getElementById('editHero3').value = content.hero3;
-    document.getElementById('editHeroSub').value = content.heroSub;
     document.getElementById('editMarquee').value = content.marquee;
     document.getElementById('editAboutLead').value = content.aboutLead;
     document.getElementById('editAboutBody').value = content.aboutBody;
-    document.getElementById('editStatus').value = content.status;
     document.getElementById('editLocation').value = content.location;
     document.getElementById('editEmail').value = content.email;
   }
@@ -126,8 +120,8 @@
   // Save on input change
   const editFields = [
     'editLogo', 'editLinks', 'editHero1', 'editHero3',
-    'editHeroSub', 'editMarquee', 'editAboutLead', 'editAboutBody',
-    'editStatus', 'editLocation', 'editEmail'
+    'editMarquee', 'editAboutLead', 'editAboutBody',
+    'editLocation', 'editEmail'
   ];
 
   editFields.forEach(fieldId => {
@@ -139,11 +133,9 @@
         'links': 'links',
         'hero1': 'hero1',
         'hero3': 'hero3',
-        'herosub': 'heroSub',
         'marquee': 'marquee',
         'aboutlead': 'aboutLead',
         'aboutbody': 'aboutBody',
-        'status': 'status',
         'location': 'location',
         'email': 'email'
       };
@@ -261,7 +253,6 @@
 
   // ---------- Blur-out on hero when the About section approaches ----------
   const heroTitle = document.querySelector('.hero-title');
-  const heroSub = document.querySelector('.hero-sub');
   const heroGecko = document.querySelector('.hero-gecko');
   let ticking = false;
 
@@ -275,11 +266,9 @@
 
         if (window.pageYOffset > aboutTop - window.innerHeight * 0.5) {
           heroTitle.classList.add('blur-out');
-          heroSub.classList.add('blur-out');
           heroGecko.classList.add('blur-out');
         } else {
           heroTitle.classList.remove('blur-out');
-          heroSub.classList.remove('blur-out');
           heroGecko.classList.remove('blur-out');
         }
         ticking = false;
