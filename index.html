@@ -48,7 +48,7 @@
   <!-- Analytics (uncomment and add your domain) -->
   <!-- <script defer data-domain="vinnyrz.com" src="https://plausible.io/js/script.js"></script> -->
 
-  <link rel="stylesheet" href="styles.css?v=20261113f">
+  <link rel="stylesheet" href="styles.css?v=20261114a">
 </head>
 <body>
 
@@ -127,7 +127,6 @@
     </div>
 
     <div class="hero-gecko" aria-hidden="true">
-      <canvas id="heroGeckoCanvas"></canvas>
       <img src="gecko-transparent.png" alt="" width="1437" height="825" fetchpriority="high" decoding="async">
     </div>
 
@@ -174,8 +173,8 @@
   <section class="about-scene" id="about" aria-labelledby="aboutTitle">
     <div class="about-pin" id="aboutPin">
       <div class="about-specimen" id="specimenStage">
-        <canvas id="specimenCanvas" aria-label="Interactive 3D CT scan of a Japanese gecko. Drag to inspect.">
-          A 3D scan of Gekko japonicus.
+        <canvas id="specimenCanvas" aria-label="Interactive 3D depth study of a gecko. Drag to inspect.">
+          A 3D depth study of a gecko.
         </canvas>
 
         <div class="about-grid-overlay" aria-hidden="true"></div>
@@ -183,8 +182,8 @@
         <div class="about-scrim" aria-hidden="true"></div>
 
         <div class="specimen-hud specimen-hud-top">
-          <span class="specimen-tag"><span class="specimen-pulse"></span>Specimen 001 — Gekko japonicus</span>
-          <span class="specimen-meta">CT scan / real-time</span>
+          <span class="specimen-tag"><span class="specimen-pulse"></span>Specimen 001 - Gecko</span>
+          <span class="specimen-meta">Depth study / real-time</span>
         </div>
 
         <div class="about-overlay">
@@ -221,7 +220,7 @@
           <article class="about-beat about-beat-notes" data-about-beat="2">
             <p class="about-kicker"><span class="about-kicker-num">↳</span><span>Field notes</span><span class="about-kicker-rule" aria-hidden="true"></span></p>
             <h3 class="about-subtitle">Borrowed from<br><em>a gecko.</em></h3>
-            <p class="about-body">The specimen isn't decoration. Gekko japonicus is a study in grip, patience, and reinvention — the same three things a good interface needs.</p>
+            <p class="about-body">The specimen isn't decoration. A gecko is a study in grip, patience, and reinvention — the same three things a good interface needs.</p>
             <div class="about-fieldnotes">
               <div class="fieldnote">
                 <span class="fieldnote-num">01</span>
@@ -574,7 +573,6 @@
 
   <script src="script.js?v=20261108b"></script>
   <script type="module" src="motion.js?v=20261108j"></script>
-  <script type="module" src="about3d.js?v=20261108a"></script>
-  <script type="module" src="hero3d.js?v=20261113b"></script>
+  <script type="module" src="about3d.js?v=20261114d"></script>
 </body>
 </html>

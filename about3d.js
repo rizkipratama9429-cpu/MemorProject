@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// ---------- About: full-bleed blue specimen ----------
-// The gecko is the About layer now, not a card inside it. Scrolling drifts
-// it along the x axis while the copy moves through three editorial beats.
+// ---------- About: full-bleed depth specimen ----------
+// The meshy gecko is the About layer now, shaded as an unlit depth ramp so it
+// keeps the printed look of the page. Scrolling drifts it along the x axis
+// while the copy moves through three editorial beats.
 
 const stage = document.querySelector("#specimenStage");
 const canvas = document.querySelector("#specimenCanvas");
@@ -22,7 +23,7 @@ if (stage && canvas) {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
-  // The specimen is an iridescent blue scan, not a bronze cast. The CSS ramp
+  // The specimen is a depth study in blue, not a lit bronze cast. The CSS ramp
   // lives in :root as --color-1…5 so the bone, glow and sparks stay in one
   // family; fall back to the same values if the stylesheet is late.
   const SPECIMEN_PALETTE_FALLBACK = [0xd1dbe4, 0xa3b7ca, 0x7593af, 0x476f95, 0x194a7a];
@@ -53,72 +54,74 @@ if (stage && canvas) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
 
-  // ---------- Reflections ----------
-  // A tiny procedural studio environment: hot white key, cyan rim, dark floor.
-  function createEnvironment() {
-    const envCanvas = document.createElement("canvas");
-    envCanvas.width = 512;
-    envCanvas.height = 256;
-    const ctx = envCanvas.getContext("2d");
+  // ---------- Depth material ----------
+  // Same language as the HUD: near surfaces bone, far surfaces ink, with a
+  // camera-space form term. The five-stop specimen palette is folded into
+  // three stops so the model stays in the About colour family.
+  const specimenMaterial = new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    uniforms: {
+      uBone: { value: new THREE.Color(SPECIMEN_PALETTE[1]) },
+      uMid: { value: new THREE.Color(SPECIMEN_PALETTE[3]) },
+      uInk: { value: new THREE.Color(SPECIMEN_PALETTE[4]) },
+      uNear: { value: 0 },
+      uFar: { value: 1 },
+    },
+    vertexShader: /* glsl */ `
+      varying float vDepth;
+      varying vec3 vNormalV;
+      varying vec3 vViewDir;
 
-    const base = ctx.createLinearGradient(0, 0, 0, 256);
-    base.addColorStop(0, "#27364f");
-    base.addColorStop(0.45, "#0e1729");
-    base.addColorStop(1, "#050912");
-    ctx.fillStyle = base;
-    ctx.fillRect(0, 0, 512, 256);
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vDepth = -mv.z;
+        vNormalV = normalize(normalMatrix * normal);
+        vViewDir = normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uBone;
+      uniform vec3 uMid;
+      uniform vec3 uInk;
+      uniform float uNear;
+      uniform float uFar;
 
-    const key = ctx.createRadialGradient(360, 62, 0, 360, 62, 130);
-    key.addColorStop(0, "rgba(255, 255, 255, 1)");
-    key.addColorStop(0.22, "rgba(255, 242, 222, 0.75)");
-    key.addColorStop(1, "rgba(255, 255, 255, 0)");
-    ctx.fillStyle = key;
-    ctx.fillRect(0, 0, 512, 256);
+      varying float vDepth;
+      varying vec3 vNormalV;
+      varying vec3 vViewDir;
 
-    const rim = ctx.createRadialGradient(96, 128, 0, 96, 128, 150);
-    rim.addColorStop(0, "rgba(171, 196, 255, 0.8)");
-    rim.addColorStop(1, "rgba(171, 196, 255, 0)");
-    ctx.fillStyle = rim;
-    ctx.fillRect(0, 0, 512, 256);
+      float hash12(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+      }
 
-    const texture = new THREE.CanvasTexture(envCanvas);
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    texture.colorSpace = THREE.SRGBColorSpace;
+      void main() {
+        float t = clamp((vDepth - uNear) / max(uFar - uNear, 0.0001), 0.0, 1.0);
+        t = smoothstep(0.04, 0.96, t);
 
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    scene.environment = pmrem.fromEquirectangular(texture).texture;
-    texture.dispose();
-    pmrem.dispose();
-  }
-  createEnvironment();
+        vec3 ramp = mix(uBone, uMid, smoothstep(0.0, 0.5, t));
+        ramp = mix(ramp, uInk, smoothstep(0.42, 0.94, t));
 
-  // ---------- Light rig ----------
-  scene.add(new THREE.AmbientLight(0xdff1ff, 0.32));
+        vec3 n = normalize(vNormalV);
+        if (!gl_FrontFacing) n = -n;
+        vec3 v = normalize(vViewDir);
 
-  const keyLight = new THREE.DirectionalLight(0xcfe0ff, 1.1);
-  keyLight.position.set(4, 6, 3);
-  keyLight.castShadow = true;
-  keyLight.shadow.mapSize.set(1024, 1024);
-  keyLight.shadow.camera.left = -6;
-  keyLight.shadow.camera.right = 6;
-  keyLight.shadow.camera.top = 6;
-  keyLight.shadow.camera.bottom = -6;
-  keyLight.shadow.camera.near = 0.5;
-  keyLight.shadow.camera.far = 24;
-  keyLight.shadow.bias = -0.001;
-  scene.add(keyLight);
+        float ndl = clamp(dot(n, normalize(vec3(0.2, 0.62, 0.75))), 0.0, 1.0);
+        float form = 0.52 + 0.48 * pow(ndl, 0.9);
+        float fres = pow(1.0 - clamp(dot(n, v), 0.0, 1.0), 3.0);
 
-  const rimLight = new THREE.DirectionalLight(0xabc4ff, 2);
-  rimLight.position.set(-5, 3, -4);
-  scene.add(rimLight);
+        vec3 color = ramp * form;
+        color = mix(color, uInk, fres * 0.18);
+        color += (hash12(gl_FragCoord.xy) - 0.5) / 255.0;
 
-  const fillLight = new THREE.DirectionalLight(0xffd7ad, 0.5);
-  fillLight.position.set(-2, -4, 3);
-  scene.add(fillLight);
-
-  const underLight = new THREE.PointLight(0xabc4ff, 5, 12, 2);
-  underLight.position.set(0, -1.8, 2.4);
-  scene.add(underLight);
+        gl_FragColor = vec4(color, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `,
+  });
 
   // ---------- Soft contact shadow ----------
   let contactShadow = null;
@@ -272,8 +275,6 @@ if (stage && canvas) {
   let specimenPointCount = 0;
   let projectedXs = null;
   let projectedYs = null;
-  let specimenShader = null;
-  let specimenPosScale = 1;
   const projectionPoint = new THREE.Vector3();
   const modelCenterWorld = new THREE.Vector3();
   const cameraRight = new THREE.Vector3();
@@ -381,12 +382,48 @@ if (stage && canvas) {
     // small height and side adjustments.
     viewportNarrow = narrow;
     viewportTight = tightLandscape;
-    baseYaw = narrow ? -5.34 : 0;
+    // The meshy scan is modelled along its local Z. This yaw turns the head
+    // into the establishing camera's screen-right so the first beat reads a
+    // long flank instead of a foreshortened chest.
+    baseYaw = 0.79;
 
     // Hold the specimen above the copy when the viewport is portrait or a
     // narrow landscape. Lift the whole orbit rather than tilting the camera,
     // so the scan keeps its silhouette. Scaled with camera distance.
     baseOffsetY = narrow ? cameraRadius * 0.13 : tightLandscape ? cameraRadius * 0.14 : 0;
+  }
+
+  // ---------- Depth uniforms ----------
+  // Measure the model's view-space extent each frame so the ramp stays legible
+  // through the whole camera choreography. A fixed range would flatten the
+  // near flank in the close shots and crush the far one in the overhead pass.
+  const depthCorner = new THREE.Vector3();
+
+  function updateDepthRamp() {
+    if (!specimenBounds) return;
+    camera.updateMatrixWorld();
+
+    let near = Infinity;
+    let far = -Infinity;
+    const { min, max } = specimenBounds;
+
+    for (let index = 0; index < 8; index += 1) {
+      depthCorner
+        .set(
+          index & 1 ? max.x : min.x,
+          index & 2 ? max.y : min.y,
+          index & 4 ? max.z : min.z
+        )
+        .applyMatrix4(pivot.matrixWorld)
+        .applyMatrix4(camera.matrixWorldInverse);
+      const depth = -depthCorner.z;
+      near = Math.min(near, depth);
+      far = Math.max(far, depth);
+    }
+
+    const span = Math.max(0.4, far - near);
+    specimenMaterial.uniforms.uNear.value = near - span * 0.02;
+    specimenMaterial.uniforms.uFar.value = far - span * 0.08;
   }
 
   // ---------- Copy placement ----------
@@ -621,106 +658,36 @@ if (stage && canvas) {
   function buildModel(gltf) {
     const model = gltf.scene;
 
-    const palette = SPECIMEN_PALETTE.map((hex) => new THREE.Color(hex));
-
-    const bone = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      metalness: 0.1,
-      roughness: 0.62,
-      envMapIntensity: 0.55,
-      emissive: 0x061224,
-      flatShading: false,
-      // The scan ships double-sided; keep it so no bone surface vanishes.
-      side: THREE.DoubleSide,
-      // Dither the palette ramp so the five blues blend without banding.
-      dithering: true,
+    const sourceMaterials = new Set();
+    model.traverse((child) => {
+      if (!child.isMesh) return;
+      [].concat(child.material || []).forEach((mat) => mat && sourceMaterials.add(mat));
     });
-
-    bone.onBeforeCompile = (shader) => {
-      shader.uniforms.uPalette0 = { value: palette[0] };
-      shader.uniforms.uPalette1 = { value: palette[1] };
-      shader.uniforms.uPalette2 = { value: palette[2] };
-      shader.uniforms.uPalette3 = { value: palette[3] };
-      shader.uniforms.uPalette4 = { value: palette[4] };
-      shader.uniforms.uFlow = { value: 0 };
-      shader.uniforms.uPosScale = { value: specimenPosScale };
-
-      shader.vertexShader = shader.vertexShader
-        .replace(
-          "#include <common>",
-          `#include <common>
-          varying vec3 vSpecimenPos;`
-        )
-        .replace(
-          "#include <begin_vertex>",
-          `#include <begin_vertex>
-          vSpecimenPos = transformed;`
-        );
-
-      shader.fragmentShader = shader.fragmentShader
-        .replace(
-          "#include <common>",
-          `#include <common>
-          varying vec3 vSpecimenPos;
-          uniform vec3 uPalette0;
-          uniform vec3 uPalette1;
-          uniform vec3 uPalette2;
-          uniform vec3 uPalette3;
-          uniform vec3 uPalette4;
-          uniform float uFlow;
-          uniform float uPosScale;
-
-          vec3 specimenPalette(float t) {
-            // Weight the ramp toward the mid and deep blues. The light stop
-            // stays as a narrow highlight instead of washing out the ribs.
-            float ramp = clamp(t, 0.0, 1.0);
-            if (ramp < 0.08) return mix(uPalette0, uPalette1, ramp / 0.08);
-            if (ramp < 0.3) return mix(uPalette1, uPalette2, (ramp - 0.08) / 0.22);
-            if (ramp < 0.68) return mix(uPalette2, uPalette3, (ramp - 0.3) / 0.38);
-            return mix(uPalette3, uPalette4, (ramp - 0.68) / 0.32);
-          }`
-        )
-        .replace(
-          "#include <color_fragment>",
-          `#include <color_fragment>
-          // Repeat the ramp along the skeleton so the whole silhouette picks
-          // up the light and deep blues, not just the skull. Folding the
-          // coordinate at each end keeps the drift seamless.
-          float specimenCoord =
-            (vSpecimenPos.x * 0.9 + vSpecimenPos.y * 0.04 + vSpecimenPos.z * 0.08)
-            * uPosScale * 2.2 + 0.5 + uFlow;
-          vec3 specimenColor = specimenPalette(abs(fract(specimenCoord) * 2.0 - 1.0));
-          diffuseColor.rgb = specimenColor;`
-        )
-        .replace(
-          "#include <emissivemap_fragment>",
-          `#include <emissivemap_fragment>
-          float specimenRim = pow(
-            1.0 - clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0),
-            2.4
-          );
-          totalEmissiveRadiance += specimenColor * (0.14 + specimenRim * 0.32);`
-        );
-
-      specimenShader = shader;
-    };
-    bone.customProgramCacheKey = () => "specimen-palette-v1";
 
     model.traverse((child) => {
       if (!child.isMesh) return;
-      child.material = bone;
-      child.castShadow = true;
-      child.receiveShadow = true;
+      child.material = specimenMaterial;
+      child.castShadow = false;
+      child.receiveShadow = false;
+      if (child.geometry?.attributes?.uv) child.geometry.deleteAttribute("uv");
+    });
+
+    // The GLB carries PBR textures that the depth ramp replaces; dispose them
+    // so the 46 MB download does not become 46 MB of GPU memory too.
+    sourceMaterials.forEach((mat) => {
+      ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap", "emissiveMap"].forEach((slot) => {
+        if (mat[slot]) {
+          mat[slot].dispose();
+          mat[slot] = null;
+        }
+      });
+      mat.dispose();
     });
 
     // Normalize to a 3.6 unit footprint, then recenter inside the pivot.
     const initialBox = new THREE.Box3().setFromObject(model);
     const initialSize = initialBox.getSize(new THREE.Vector3());
     const maxDim = Math.max(initialSize.x, initialSize.y, initialSize.z);
-    // Normalize the shader's position coordinate too, so the palette ramp
-    // spans the specimen once regardless of the scan's export scale.
-    specimenPosScale = 1 / (maxDim > 0.0001 ? maxDim : 1);
-    if (specimenShader) specimenShader.uniforms.uPosScale.value = specimenPosScale;
     model.scale.setScalar(3.6 / (maxDim > 0.0001 ? maxDim : 1));
     model.updateMatrixWorld(true);
 
@@ -770,7 +737,7 @@ if (stage && canvas) {
 
   const loader = new GLTFLoader();
   loader.load(
-    "assets/gekko-japonicus.glb",
+    "assets/meshy-model.glb",
     buildModel,
     (event) => {
       if (event.total) setLoadProgress((event.loaded / event.total) * 100);
@@ -980,13 +947,6 @@ if (stage && canvas) {
     }
     syncCopyPresentation();
 
-    if (specimenShader) {
-      // A full colour cycle across the section, plus a slow drift so the blue
-      // stays alive while the scene is parked. Reduced motion follows scroll.
-      const drift = reduceMotion.matches ? 0 : clock.elapsedTime * 0.02;
-      specimenShader.uniforms.uFlow.value = sceneProgress + drift;
-    }
-
     const pointerEase = 1 - Math.exp(-3 * dt);
     pointerX += (targetPointerX - pointerX) * pointerEase;
     pointerY += (targetPointerY - pointerY) * pointerEase;
@@ -1039,6 +999,7 @@ if (stage && canvas) {
       azimuthEl.textContent = `AZ ${String(Math.abs(Math.round(degrees)) % 360).padStart(3, "0")}°`;
     }
 
+    if (modelReady) updateDepthRamp();
     renderer.render(scene, camera);
   }
 

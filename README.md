@@ -8,8 +8,8 @@ A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. 
 - Archivo display/body, Instrument Serif italic emphasis, JetBrains Mono labels
 - Scroll progress bar
 - Magnetic buttons
-- Hero gecko rendered as a live depth-map specimen
-- Pinned About scene with a real-time 3D gecko specimen
+- Hero gecko cut-out mirrored toward the type axis
+- Pinned About scene with a real-time 3D depth specimen
 - Expertise halftone plate that resolves photographs as you scroll
 - Editable content (localStorage)
 - Footer with editable contact details and local time
@@ -27,30 +27,36 @@ A pastel-blue editorial portfolio built with vanilla HTML, CSS, and JavaScript. 
 | Hairlines | `--accent-soft` | `#c1d3fe` |
 | Ink | `--ink` | `#101a2e` |
 
-The hero specimen is `assets/meshy-model.glb` shaded by `hero3d.js` with an
-unlit depth ramp: near surfaces pale (`#dde8f7`), far surfaces ink (`#35496a`),
-with a soft camera-space form term and a thin grazing rim. No lights or
-environment maps are used, so the model keeps the flat, printed look of the
-page. The zoomed poster (`gecko-transparent.png`) paints first and cross-fades
-to the canvas once the mesh is ready; the 46 MB download is deferred until
-after `load`. Keep any new hero tones inside that three-stop cool ramp.
+The hero specimen is the flat cut-out `gecko-transparent.png`, set in a shell
+with a soft radial wash and a right-edge mask. It is mirrored in CSS (`scale:
+-1 1`), not in the source image, so the dark head turns into the type while the
+photographed flank keeps its shading. The shell sits at `63%` with a right-edge
+mask that lets the tail dissolve. Under `768px` the mirror is dropped and the
+gecko centers with its head to the open right edge. There is no hero canvas.
 
-The hero composition is a left axis and a right counterweight: both title lines
-share the same left margin, and the specimen is mirrored in CSS (not in the
-mesh) so its head turns into the type while the dark flank and pale belly are
-preserved. The shell sits at `63%` with a right-edge mask that lets the tail
-dissolve. Under `768px` the mirror and offset are dropped, and the model is
-centered with its head to the open right edge. Don't flip the yaw instead — the
-opposite flank loses the eye and head shading.
+The About scene loads `assets/meshy-model.glb` in `about3d.js` and shades it
+with an unlit depth ramp: near surfaces bone (`#a3b7ca`), mid surfaces
+`#476f95`, far surfaces ink (`#194a7a`), plus a soft camera-space form term and
+a thin grazing rim. No lights or environment maps are used, so the model keeps
+the flat, printed look of the page. The depth range is measured each frame from
+the specimen's bounding box projected into camera space, so the ramp stays
+legible through every camera key. The 46 MB GLB starts loading with the module
+and the HUD meter reports progress until the first frame is ready.
 
 The About scene is the one dark plate (`#0b1322`) so the blue specimen keeps
 its contrast. It re-declares the color tokens inside `.about-scene`; don't
 change the global ink to fix About copy.
 
-The specimen uses a five-stop cool ramp (`#d1dbe4` → `#a3b7ca` → `#7593af` →
-`#476f95` → `#194a7a`) blended in `about3d.js`. The gradient travels with the
-scroll timeline and drifts slowly while parked; keep new specimen colors inside
-that family.
+The specimen HUD, glow and sparks use the five-stop cool ramp (`#d1dbe4` →
+`#a3b7ca` → `#7593af` → `#476f95` → `#194a7a`) read from `--color-1…5` in
+`about3d.js`. The model shader only consumes the bone, mid and ink stops; keep
+new specimen colors inside that family.
+
+The model carries a fixed base yaw of `0.79` rad so the first beat reads a long
+flank instead of a foreshortened chest. Change the base yaw instead of the
+camera keys when the silhouette stops reading; the keys and the safe-area guard
+are tuned around it. On narrow viewports the specimen stays centered above the
+copy and the yaw holds.
 
 The copy layer is camera-linked: `about3d.js` projects sampled specimen
 vertices, drifts `.about-overlay` on `--copy-x` / `--copy-y`, and caps a
@@ -154,8 +160,7 @@ Do not add a `/index.html` fallback to `try_files`; it causes a rewrite cycle.
 ├── styles.css          # All styles
 ├── script.js           # Edit panel, nav, form
 ├── motion.js           # Lenis, reveals, About governor, expertise halftone
-├── about3d.js          # Three.js gecko specimen (About)
-├── hero3d.js           # Depth-ramp gecko specimen (hero)
+├── about3d.js          # Three.js depth specimen (About)
 ├── assets/             # Model and texture assets
 ├── vercel.json         # Vercel deployment config
 ├── netlify.toml        # Netlify deployment config
@@ -169,7 +174,7 @@ Do not add a `/index.html` fallback to `try_files`; it causes a rewrite cycle.
 - **HTML5** — Semantic markup
 - **CSS3** — Custom properties, Grid, Flexbox, animations
 - **Vanilla JS** — Edit panel and interactions
-- **Lenis / Three.js** — Smooth scroll and both 3D specimens, loaded as ES modules
+- **Lenis / Three.js** — Smooth scroll and the About 3D specimen, loaded as ES modules
 - **Fonts** — Archivo, Instrument Serif, JetBrains Mono (Google Fonts)
 
 ## License

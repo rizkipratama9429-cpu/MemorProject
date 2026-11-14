@@ -12,14 +12,14 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - `styles.css` — All styles, animations
 - `script.js` — Edit panel, nav, contact form
 - `motion.js` — Lenis smooth scroll, reveals, About scroll governor, expertise halftone plate
-- `about3d.js` — Three.js gecko specimen (About)
-- `hero3d.js` — Depth-ramp 3D gecko (hero)
+- `about3d.js` — Three.js depth specimen (About)
 
 **Key Features:**
 - 60/30/10 pastel-blue palette with ink-led contrast
 - Scroll progress bar
 - Magnetic buttons
-- Hero gecko as a live depth-map specimen (`assets/meshy-model.glb`)
+- Hero gecko as a mirrored cut-out (`gecko-transparent.png`)
+- About gecko as a live depth-map specimen (`assets/meshy-model.glb`)
 - Edit panel for content (localStorage)
 - Pinned About scene (360vh desktop / 310vh mobile) with three camera beats
 - Expertise halftone plate (460vh) that fades up on entry and resolves photos on scroll
@@ -32,9 +32,9 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - **Palette (60/30/10):** paper `#edf2fa` · support `#d7e3fc` / card `#ccdbfd` · accent `#abc4ff` · hairlines `#c1d3fe`
 - **Ink:** `#101a2e` for all readable text; `#4c5a76` for secondary copy
 - **About plate:** `#0b1322` is the only dark section — it scopes its own light-ink tokens
-- **Specimen palette:** `#d1dbe4` → `#a3b7ca` → `#7593af` → `#476f95` → `#194a7a`, blended on a scroll-driven ramp
-- **Hero specimen:** unlit depth ramp `#dde8f7` → `#9db4d1` → `#35496a` (`bone` → `mid` → `ink`); poster cross-fades to canvas
-- **Hero composition:** both title lines flush left; specimen mirrored in CSS at `63%` top-right, head facing the type. Do not mirror by yaw — the other flank loses the head shading. Below `768px` the mirror/offset are reset and the gecko centers with the head right
+- **Specimen palette:** `#d1dbe4` → `#a3b7ca` → `#7593af` → `#476f95` → `#194a7a`; HUD, glow and sparks use all five, the model shader uses bone/mid/ink
+- **About specimen:** unlit depth ramp `#a3b7ca` → `#476f95` → `#194a7a` (`bone` → `mid` → `ink`), no lights or environment. Depth range is measured per frame from the bounding box projected into camera space
+- **Hero composition:** both title lines flush left; the flat cut-out is mirrored in CSS at `63%` top-right, head facing the type. Do not mirror the source image — the CSS flip keeps the photographed flank intact. Below `768px` the mirror is dropped and the gecko centers with the head right
 - **Fonts:** Archivo (display/body, 800–900 for headlines), Instrument Serif italic (emphasis), JetBrains Mono (labels)
 - **Easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for smooth expo-out
 - **Shadows:** hard offset print shadows (`8px 8px 0 var(--accent)`), not soft glows
@@ -49,10 +49,12 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 
 ### Animation Tuning
 - Hero blur-out triggers at About section approach
-- Hero specimen drifts with a slow sway plus pointer parallax; reduced motion
-  renders one static frame and stops
-- Hero canvas fades in over `gecko-transparent.png`; keep the poster so the
-  first paint is never empty while the 46 MB GLB loads after `load`
+- The About specimen drifts with a slow sway plus pointer parallax; reduced
+  motion renders one static frame and stops
+- The About GLB starts loading with the module; the HUD meter reports progress
+  until `#specimenStage` gets `is-ready`
+- About base yaw is `0.79` rad so the establishing beat reads a long flank;
+  tune the yaw before touching camera keys or the safe-area guard
 - Nav links: slide-in-left on load, accent underline on hover
 - Background: bg-pan-left 8s ease-in-out infinite alternate
 - About playhead is capped at `0.28` timeline fraction per second with easing `7`

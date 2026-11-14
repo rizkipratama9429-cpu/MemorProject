@@ -508,7 +508,7 @@ a {
   border-right: 0;
 }
 
-/* Gecko: depth specimen layered between the grid and the hero type. */
+/* Gecko: cut-out specimen layered between the grid and the hero type. */
 .hero-gecko {
   position: absolute;
   top: clamp(8rem, 14vh, 11.5rem);
@@ -523,44 +523,18 @@ a {
   mask-image: linear-gradient(90deg, #000 0%, #000 82%, transparent 100%);
 }
 
-/* The real-time specimen fades in over the cut-out poster once the mesh and
-   shader are ready, so the hero is complete on the first paint. */
-.hero-gecko canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  /* Mirror the render, not the model: the photographed flank keeps its dark
-     head and pale belly, while the head turns toward the left-hand type. */
-  scale: -1 1;
-  opacity: 0;
-  transition: opacity 1.2s var(--ease-smooth);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, rgba(0, 0, 0, 0.7) 86%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 72%, rgba(0, 0, 0, 0.7) 86%, transparent 100%);
-}
-
-.hero-gecko.is-ready canvas {
-  opacity: 1;
-}
-
 .hero-gecko img {
   display: block;
   width: 100%;
   height: auto;
+  /* Mirror the cut-out, not the model: the dark head keeps its shading while
+     it turns toward the left-hand type block. */
   scale: -1 1;
   filter: contrast(1.04) brightness(0.98) drop-shadow(0 28px 46px rgba(16, 26, 46, 0.22));
   mix-blend-mode: multiply;
   -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, rgba(0, 0, 0, 0.7) 86%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 0%, #000 72%, rgba(0, 0, 0, 0.7) 86%, transparent 100%);
   animation: gecko-in 1.4s var(--ease-smooth) 0.3s both;
-  transition: opacity 1.2s var(--ease-smooth);
-}
-
-.hero-gecko.is-ready img {
-  /* The entrance animation holds opacity at 1; override its fill so the
-     poster can cross-fade out under the live specimen. */
-  opacity: 0 !important;
 }
 
 .hero-gecko.blur-out {
@@ -2720,10 +2694,9 @@ a {
     mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 100%);
   }
 
-  /* On phones the headline sits over the specimen, so the model faces the
+  /* On phones the headline sits over the specimen, so the cut-out faces the
      open right edge instead of turning into the type. Keep this reset in
-     sync with the mirrored canvas in the desktop rule. */
-  .hero-gecko canvas,
+     sync with the mirrored image in the desktop rule. */
   .hero-gecko img {
     scale: 1 1;
   }
@@ -3105,10 +3078,6 @@ a {
   .hero-title.blur-out,
   .hero-gecko.blur-out {
     animation-duration: 0.01ms !important;
-  }
-
-  .hero-gecko canvas {
-    transition: none;
   }
 
   .specimen-pulse {
