@@ -736,19 +736,44 @@ if (stage && canvas) {
   }
 
   const loader = new GLTFLoader();
-  loader.load(
-    "assets/meshy-model.glb",
-    buildModel,
-    (event) => {
-      if (event.total) setLoadProgress((event.loaded / event.total) * 100);
-    },
-    (error) => {
-      console.error("Could not load the gecko specimen:", error);
-      if (loadPct) loadPct.textContent = "—";
-      const label = loadEl?.querySelector(".specimen-load-label");
-      if (label) label.textContent = "Specimen unavailable";
-    }
-  );
+  let specimenRequested = false;
+
+  function loadSpecimen() {
+    if (specimenRequested) return;
+    specimenRequested = true;
+
+    loader.load(
+      "assets/meshy-model.glb?v=20261120",
+      buildModel,
+      (event) => {
+        if (event.total) setLoadProgress((event.loaded / event.total) * 100);
+      },
+      (error) => {
+        console.error("Could not load the gecko specimen:", error);
+        if (loadPct) loadPct.textContent = "—";
+        const label = loadEl?.querySelector(".specimen-load-label");
+        if (label) label.textContent = "Specimen unavailable";
+      }
+    );
+  }
+
+  // Keep the scan off the first paint. It starts once About is within a
+  // viewport and a half, so the hero and type finish loading first.
+  if (sceneSection && "IntersectionObserver" in window) {
+    const loadObserver = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        loadObserver.disconnect();
+        loadSpecimen();
+      },
+      // Shrink the bottom edge so the hero's full first screen is past before
+      // the download starts; a positive margin would fire on first paint.
+      { rootMargin: "0px 0px -10% 0px" }
+    );
+    loadObserver.observe(sceneSection);
+  } else {
+    loadSpecimen();
+  }
 
   // ---------- Interaction state ----------
   let pointerX = 0;

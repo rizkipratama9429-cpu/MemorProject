@@ -40,8 +40,10 @@ with an unlit depth ramp: near surfaces bone (`#a3b7ca`), mid surfaces
 a thin grazing rim. No lights or environment maps are used, so the model keeps
 the flat, printed look of the page. The depth range is measured each frame from
 the specimen's bounding box projected into camera space, so the ramp stays
-legible through every camera key. The 46 MB GLB starts loading with the module
-and the HUD meter reports progress until the first frame is ready.
+legible through every camera key. The scan is decimated to roughly 105k
+triangles and 1.8 MB, with its textures and UVs stripped because the depth
+shader replaces them. It starts loading only when About is within a viewport
+and a half, and the HUD meter reports progress until the first frame is ready.
 
 The About scene is the one dark plate (`#0b1322`) so the blue specimen keeps
 its contrast. It re-declares the color tokens inside `.about-scene`; don't

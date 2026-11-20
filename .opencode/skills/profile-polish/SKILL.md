@@ -51,7 +51,8 @@ This is Vinnyrz's personal profile website — a pastel-blue editorial portfolio
 - Hero blur-out triggers at About section approach
 - The About specimen drifts with a slow sway plus pointer parallax; reduced
   motion renders one static frame and stops
-- The About GLB starts loading with the module; the HUD meter reports progress
+- The About GLB is decimated (~105k tris, 1.8 MB, no textures/UVs) and starts
+  loading when About is within 1.5 viewports; the HUD meter reports progress
   until `#specimenStage` gets `is-ready`
 - About base yaw is `0.79` rad so the establishing beat reads a long flank;
   tune the yaw before touching camera keys or the safe-area guard
